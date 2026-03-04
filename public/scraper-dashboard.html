@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Scrapers — Lumu AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0f1e;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+        }
+
+        .header h1 span {
+            color: #10B981;
+        }
+
+        .timestamp {
+            font-size: 0.78rem;
+            color: #64748b;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .recommendation {
+            padding: 14px 20px;
+            border-radius: 14px;
+            margin-bottom: 28px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.5;
+        }
+
+        .recommendation.ok {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .recommendation.warn {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        .recommendation.critical {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 22px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .scraper-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: capitalize;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+
+        .status-ok {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-warn {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-critical {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+            color: #94a3b8;
+        }
+
+        .stat-row span:last-child {
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 14px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+
+        .fill-ok {
+            background: linear-gradient(90deg, #10B981, #34d399);
+        }
+
+        .fill-warn {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .fill-critical {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        .block-rate-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 0.78rem;
+        }
+
+        .block-rate-label span:first-child {
+            color: #64748b;
+        }
+
+        .block-rate-label span:last-child {
+            font-weight: 700;
+        }
+
+        .rate-ok {
+            color: #34d399;
+        }
+
+        .rate-warn {
+            color: #fbbf24;
+        }
+
+        .rate-critical {
+            color: #f87171;
+        }
+
+        .refresh-btn {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(16, 185, 129, 0.25);
+        }
+
+        .auto-refresh {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .scraper-icon {
+            font-size: 1.4rem;
+        }
+
+        .last-block {
+            color: #ef4444;
+            font-size: 0.78rem;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .loading {
+            opacity: 0.5;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #10B981;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🛡️ Lumu <span>Scraper Health</span></h1>
+        <div style="display:flex;align-items:center;gap:12px">
+            <button class="refresh-btn" onclick="loadHealth()">↻ Actualizar</button>
+            <span class="timestamp" id="ts">Cargando...</span>
+        </div>
+    </div>
+
+    <div id="recommendation" class="recommendation ok">
+        <span class="spinner"></span> Verificando estado de scrapers...
+    </div>
+
+    <div class="grid" id="scrapers-grid">
+        <!-- Cards inyectadas por JS -->
+    </div>
+
+    <p class="auto-refresh" id="countdown-label">Auto-refresh en <span id="countdown">30</span>s</p>
+
+    <script>
+        const icons = { amazon: '🛒', coppel: '🏪', walmart: '🟡', google: '🔍' };
+
+        async function loadHealth() {
+            const grid = document.getElementById('scrapers-grid');
+            const rec = document.getElementById('recommendation');
+            const ts = document.getElementById('ts');
+            rec.innerHTML = '<span class="spinner"></span> Obteniendo datos...';
+            rec.className = 'recommendation ok';
+
+            try {
+                const res = await fetch('/api/scraper-health');
+                const data = await res.json();
+                ts.textContent = new Date(data.timestamp).toLocaleTimeString('es-MX');
+
+                const hasCritical = Object.values(data.scrapers).some(s => parseInt(s.blockRate) > 50);
+                const hasWarn = Object.values(data.scrapers).some(s => parseInt(s.blockRate) > 20);
+
+                if (hasCritical) {
+                    rec.textContent = data.recommendation;
+                    rec.className = 'recommendation critical';
+                } else if (hasWarn) {
+                    rec.textContent = '⚠️ Uno o más scrapers muestran señales de bloqueo. Monitorea de cerca.';
+                    rec.className = 'recommendation warn';
+                } else {
+                    rec.textContent = data.recommendation;
+                    rec.className = 'recommendation ok';
+                }
+
+                grid.innerHTML = Object.entries(data.scrapers).map(([name, s]) => {
+                    const rate = parseInt(s.blockRate);
+                    const fillClass = rate > 50 ? 'fill-critical' : rate > 20 ? 'fill-warn' : 'fill-ok';
+                    const badgeClass = rate > 50 ? 'status-critical' : rate > 20 ? 'status-warn' : 'status-ok';
+                    const rateClass = rate > 50 ? 'rate-critical' : rate > 20 ? 'rate-warn' : 'rate-ok';
+                    const total = s.success + s.fail;
+                    const successRate = total > 0 ? Math.round((s.success / total) * 100) : 100;
+                    return `
+        <div class="card">
+          <div class="card-header">
+            <div class="scraper-name"><span class="scraper-icon">${icons[name] || '🔗'}</span>${name.toUpperCase()}</div>
+            <span class="status-badge ${badgeClass}">${s.status}</span>
+          </div>
+          <div class="stat-row"><span>Exitosas</span><span>${s.success}</span></div>
+          <div class="stat-row"><span>Fallidas</span><span>${s.fail}</span></div>
+          <div class="stat-row"><span>Total peticiones</span><span>${total}</span></div>
+          <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${Math.min(rate, 100)}%"></div></div>
+          <div class="block-rate-label">
+            <span>Tasa de bloqueo</span>
+            <span class="${rateClass}">${s.blockRate}</span>
+          </div>
+          ${s.lastBlock !== 'Nunca' ? `<p class="last-block">⚠️ Último bloqueo: ${s.lastBlock}</p>` : ''}
+        </div>
+      `;
+                }).join('');
+            } catch (err) {
+                rec.textContent = '❌ No se pudo conectar con el servidor. ¿Está corriendo?';
+                rec.className = 'recommendation critical';
+                grid.innerHTML = '<div class="empty-state">Sin datos disponibles.</div>';
+            }
+        }
+
+        // Auto-refresh cada 30 segundos
+        let countdown = 30;
+        setInterval(() => {
+            countdown--;
+            document.getElementById('countdown').textContent = countdown;
+            if (countdown <= 0) { countdown = 30; loadHealth(); }
+        }, 1000);
+
+        loadHealth();
+    </script>
+
+    <!-- Vercel Analytics -->
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+
+</html>

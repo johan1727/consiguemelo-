@@ -1,0 +1,38 @@
+{
+  "name": "Lumu - Personal Shopper AI",
+  "short_name": "Lumu",
+  "description": "Compara precios con IA en Amazon, Mercado Libre y tiendas locales de México",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "lang": "es-MX",
+  "categories": ["shopping", "utilities"],
+  "icons": [
+    {
+      "src": "/images/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

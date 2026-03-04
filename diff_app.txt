@@ -1,0 +1,172 @@
+﻿diff --git a/public/app.js b/public/app.js
+index c41c3cd..f395140 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -1411,16 +1411,19 @@ async function initApp() {
+                         }
+                     }
+ 
+-                    addChatBubble('ai', `┬íListo! Estas son las mejores opciones considerando env├¡o e impuestos aproximados para "${data.intencion_detectada.busqueda}" (${data.intencion_detectada.condicion}).`, [], true);
+-
+-                    if (data.advertencia_uso) {
+-                        setTimeout(() => addChatBubble('ai', data.advertencia_uso, [], false), 800);
+-                    }
++                    addChatBubble('ai', `┬íListo! Encontr├® las mejores opciones para **"${data.intencion_detectada.busqueda}"** (${data.intencion_detectada.condicion}). Aqu├¡ tienes el resumen:`, [], true);
+ 
+                     if (data.top_5_baratos && data.top_5_baratos.length > 0) {
++                        // Render compact inline products in chat
++                        renderChatProducts(data.top_5_baratos);
++                        // Render full detailed grid below
+                         renderProducts(data.top_5_baratos);
+                         // Suggest push notifications after first successful search
+                         if (typeof window.maybeSuggestPush === 'function') window.maybeSuggestPush();
++
++                    if (data.advertencia_uso) {
++                        setTimeout(() => addChatBubble('ai', data.advertencia_uso, [], false), 800);
++                    }
+                     } else {
+                         // --- Auto-Retry con sugerencias ---
+                         const suggestions = data.sugerencias || [];
+@@ -1674,6 +1677,142 @@ async function initApp() {
+             chatContainer.scrollTop = chatContainer.scrollHeight;
+         }
+ 
++        // --- Inline Chat Product Cards ---
++        function renderChatProducts(products) {
++            if (!chatContainer || !products || products.length === 0) return;
++
++            // Remove previous inline products if any
++            const oldInline = chatContainer.querySelector('.chat-products-inline');
++            if (oldInline) oldInline.remove();
++
++            const wrapper = document.createElement('div');
++            wrapper.className = 'chat-products-inline flex items-start w-full fade-in mb-2';
++            wrapper.style.opacity = '0';
++            wrapper.style.transform = 'translateY(12px)';
++
++            // Store abbreviations for badges
++            const storeAbbr = (tienda) => {
++                const t = (tienda || '').toLowerCase();
++                if (t.includes('amazon')) return { label: 'Amazon', color: 'bg-[#FF9900]/10 text-[#FF9900] border-[#FF9900]/20' };
++                if (t.includes('libre') || t.includes('mercado')) return { label: 'ML', color: 'bg-blue-50 text-blue-700 border-blue-200' };
++                if (t.includes('walmart')) return { label: 'Walmart', color: 'bg-blue-50 text-blue-600 border-blue-200' };
++                if (t.includes('liverpool')) return { label: 'Liverpool', color: 'bg-pink-50 text-pink-600 border-pink-200' };
++                if (t.includes('coppel')) return { label: 'Coppel', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' };
++                return { label: tienda?.substring(0, 12) || 'Tienda', color: 'bg-slate-50 text-slate-600 border-slate-200' };
++            };
++
++            const productCards = products.slice(0, 5).map((product, idx) => {
++                let rawPrice = product.precio || 0;
++                let precioNumerico = typeof rawPrice === 'string' ? parseFloat(rawPrice.replace(/[^0-9.]/g, '')) : rawPrice;
++                if (isNaN(precioNumerico)) precioNumerico = 0;
++
++                const formattedPrice = precioNumerico > 0
++                    ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(precioNumerico)
++                    : 'Ver precio';
++
++                const store = storeAbbr(product.tienda);
++                const imgUrl = product.imagen || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23f1f5f9' rx='12'/%3E%3Ctext x='40' y='48' text-anchor='middle' font-size='24' fill='%2394a3b8'%3E­ƒôª%3C/text%3E%3C/svg%3E";
++                const targetUrl = encodeURIComponent(product.urlMonetizada || product.urlOriginal);
++                const isLocal = product.isLocalStore;
++                const isCheapest = idx === 0;
++
++                let trendBadge = '';
++                if (product.priceTrend?.direction === 'down') {
++                    trendBadge = `<span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md ml-1">Ôåô ${product.priceTrend.percent || 0}%</span>`;
++                } else if (product.priceTrend?.direction === 'up') {
++                    trendBadge = `<span class="text-[9px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-md ml-1">Ôåæ ${product.priceTrend.percent || 0}%</span>`;
++                }
++
++                return `
++                <div class="chat-product-item flex items-center gap-3 p-2.5 rounded-xl hover:bg-emerald-50/50 cursor-pointer group/item transition-all duration-200 ${isCheapest ? 'bg-emerald-50/60 ring-1 ring-emerald-200' : 'border border-slate-100 hover:border-emerald-200'}"
++                     data-target-url="${targetUrl}" style="animation: slideInUp 0.3s ease-out ${idx * 80}ms both">
++                    ${isCheapest ? '<div class="absolute -top-1.5 -left-1 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md shadow-sm z-10">­ƒÆ░ MEJOR PRECIO</div>' : ''}
++                    <div class="relative flex-shrink-0">
++                        <img src="${imgUrl}" alt="" class="w-14 h-14 object-contain rounded-xl bg-white shadow-sm"
++                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2780%27 height=%2780%27 viewBox=%270 0 80 80%27%3E%3Crect width=%2780%27 height=%2780%27 fill=%27%23f1f5f9%27 rx=%2712%27/%3E%3Ctext x=%2740%27 y=%2748%27 text-anchor=%27middle%27 font-size=%2724%27 fill=%2794a3b8%27%3E­ƒôª%3C/text%3E%3C/svg%3E'">
++                        ${isLocal ? '<span class="absolute -bottom-1 -right-1 text-[10px]">­ƒôì</span>' : ''}
++                    </div>
++                    <div class="flex-grow min-w-0">
++                        <p class="text-[13px] font-bold text-slate-800 line-clamp-1 group-hover/item:text-emerald-700 transition-colors">${sanitize(product.titulo)}</p>
++                        <div class="flex items-center gap-1.5 mt-1 flex-wrap">
++                            <span class="text-base font-black ${precioNumerico > 0 ? 'text-slate-900' : 'text-amber-600'}">${formattedPrice}</span>
++                            ${trendBadge}
++                            <span class="text-[9px] font-bold ${store.color} px-1.5 py-0.5 rounded-md border">${store.label}</span>
++                        </div>
++                        ${product.cupon ? `<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-0.5 inline-block">­ƒÄƒ´©Å ${sanitize(product.cupon)}</span>` : ''}
++                    </div>
++                    <button class="chat-product-btn flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-[11px] font-bold px-3 py-2 rounded-xl shadow-sm shadow-emerald-500/20 transition-all duration-150 whitespace-nowrap"
++                            data-target-url="${targetUrl}">
++                        Ver ÔåÆ
++                    </button>
++                </div>`;
++            }).join('');
++
++            wrapper.innerHTML = `
++                <div class="flex-shrink-0 mr-3 mt-1">
++                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
++                        <svg class="w-5 h-5 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
++                    </div>
++                </div>
++                <div class="bg-white/95 dark:bg-slate-800/95 rounded-[1.5rem] rounded-tl-sm shadow-md border border-slate-100 dark:border-slate-700/60 backdrop-blur-sm max-w-[92%] sm:max-w-[85%] overflow-hidden">
++                    <div class="px-4 pt-3.5 pb-2 flex items-center justify-between border-b border-slate-100 dark:border-slate-700/40">
++                        <div class="flex items-center gap-2">
++                            <span class="text-xs font-black text-emerald-600 uppercase tracking-wider">Top ${products.length > 5 ? 5 : products.length} mejores precios</span>
++                            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
++                        </div>
++                        <span class="text-[10px] text-slate-400 font-medium">${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}</span>
++                    </div>
++                    <div class="p-3 space-y-2 max-h-[45vh] overflow-y-auto custom-scrollbar">
++                        ${productCards}
++                    </div>
++                    <div class="px-3 pb-3 pt-1 flex gap-2">
++                        <button id="btn-chat-view-all" class="flex-grow py-2.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700/50 dark:hover:bg-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-all duration-200 flex items-center justify-center gap-2">
++                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
++                            Ver an├ílisis completo
++                        </button>
++                    </div>
++                </div>`;
++
++            chatContainer.appendChild(wrapper);
++
++            // Animate entrance
++            requestAnimationFrame(() => {
++                wrapper.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
++                wrapper.style.opacity = '1';
++                wrapper.style.transform = 'translateY(0)';
++            });
++
++            // Bind click events for product items and buttons
++            wrapper.querySelectorAll('.chat-product-item').forEach(item => {
++                item.addEventListener('click', (e) => {
++                    if (e.target.closest('.chat-product-btn')) return; // Let button handle its own
++                    const url = item.getAttribute('data-target-url');
++                    if (url) window.openAdGateway(url);
++                });
++            });
++            wrapper.querySelectorAll('.chat-product-btn').forEach(btn => {
++                btn.addEventListener('click', (e) => {
++                    e.stopPropagation();
++                    const url = btn.getAttribute('data-target-url');
++                    if (url) window.openAdGateway(url);
++                });
++            });
++
++            // "Ver an├ílisis completo" button scrolls to full results
++            const viewAllBtn = wrapper.querySelector('#btn-chat-view-all');
++            if (viewAllBtn) {
++                viewAllBtn.addEventListener('click', () => {
++                    resultsWrapper.classList.remove('hidden');
++                    resultsWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
++                });
++            }
++
++            // Auto-scroll chat to show products
++            setTimeout(() => {
++                chatContainer.scrollTop = chatContainer.scrollHeight;
++            }, 100);
++        }
++
+         // Track loading interval for cleanup
+         let _skeletonMsgInterval = null;
+ 

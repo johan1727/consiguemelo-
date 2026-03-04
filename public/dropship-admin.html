@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumu — Panel Dropshipping</title>
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10B981',
+                        dark: { 900: '#080e1e', 800: '#0f172a', 700: '#1e293b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .tab-active { border-bottom: 3px solid #10B981; color: #10B981; font-weight: 700; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-ordered { background: #DBEAFE; color: #1E40AF; }
+        .status-shipped { background: #E0E7FF; color: #3730A3; }
+        .status-delivered { background: #D1FAE5; color: #065F46; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+        .status-refunded { background: #F3E8FF; color: #6B21A8; }
+        .stock-in_stock { color: #059669; }
+        .stock-low_stock { color: #D97706; }
+        .stock-out_of_stock { color: #DC2626; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Auth Gate -->
+    <div id="auth-gate" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-slate-100">
+        <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-md w-full mx-4 text-center">
+            <div class="text-5xl mb-4">🔐</div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">Panel Dropshipping</h1>
+            <p class="text-slate-500 mb-6">Ingresa tu clave de administrador</p>
+            <input id="admin-key-input" type="password" placeholder="ADMIN_API_KEY"
+                class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none text-center text-lg tracking-widest mb-4"
+                onkeydown="if(event.key==='Enter') verifyAdminKey()">
+            <button onclick="verifyAdminKey()"
+                class="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors text-lg">
+                Acceder
+            </button>
+            <p id="auth-error" class="text-red-500 mt-3 text-sm hidden">Clave incorrecta</p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (hidden until auth) -->
+    <div id="dashboard" class="hidden">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="/" class="text-2xl font-extrabold text-primary">Lumu</a>
+                    <span class="text-slate-300">|</span>
+                    <span class="text-lg font-semibold text-slate-600">Dropshipping</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <select id="period-select" onchange="loadStats()" class="text-sm border border-slate-200 rounded-lg px-3 py-2">
+                        <option value="month">Último mes</option>
+                        <option value="week">Última semana</option>
+                        <option value="all">Todo el tiempo</option>
+                    </select>
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="relative text-xl hover:scale-110 transition-transform" title="Notificaciones">
+                            🔔
+                            <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+                        </button>
+                        <div id="notif-panel" class="hidden absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 max-h-96 overflow-y-auto">
+                            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                                <span class="font-bold text-slate-800 text-sm">Notificaciones</span>
+                                <button onclick="clearNotifications()" class="text-xs text-slate-400 hover:text-red-500">Limpiar</button>
+                            </div>
+                            <div id="notif-list" class="p-2">
+                                <p class="text-sm text-slate-400 p-3 text-center">Sin notificaciones</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="text-sm text-slate-400 hover:text-red-500 transition-colors">Cerrar sesión</button>
+                </div>
+            </div>
+            <!-- Tabs -->
+            <div class="max-w-7xl mx-auto px-4 flex gap-6">
+                <button class="tab-btn tab-active pb-3 text-sm font-semibold" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                <button class="tab-btn pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600" data-tab="products" onclick="switchTab('products')">📦 Productos</button>
+                <button class="tab-btn pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600" data-tab="orders" onclick="switchTab('orders')">🛒 Pedidos</button>
+                <button class="tab-btn pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600" data-tab="analytics" onclick="switchTab('analytics')">📈 Conversiones</button>
+                <button class="tab-btn pb-3 text-sm font-semibold text-slate-400 hover:text-slate-600" data-tab="suppliers" onclick="switchTab('suppliers')">🔍 Proveedores</button>
+            </div>
+        </header>
+
+        <!-- Dashboard Tab -->
+        <section id="tab-dashboard" class="tab-content max-w-7xl mx-auto px-4 py-8 fade-in">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Ingresos</p>
+                    <p id="stat-revenue" class="text-2xl font-extrabold text-slate-800">$0</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Ganancia</p>
+                    <p id="stat-profit" class="text-2xl font-extrabold text-emerald-600">$0</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pedidos</p>
+                    <p id="stat-orders" class="text-2xl font-extrabold text-slate-800">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Margen Prom.</p>
+                    <p id="stat-margin" class="text-2xl font-extrabold text-blue-600">0%</p>
+                </div>
+            </div>
+
+            <!-- Secondary Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Productos Activos</p>
+                    <p id="stat-active-products" class="text-lg font-bold">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">En Proceso</p>
+                    <p id="stat-pending" class="text-lg font-bold text-amber-600">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Entregados</p>
+                    <p id="stat-delivered" class="text-lg font-bold text-emerald-600">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Stock Bajo</p>
+                    <p id="stat-low-stock" class="text-lg font-bold text-red-500">0</p>
+                </div>
+            </div>
+
+            <!-- Top Products & Recent Orders -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">🏆 Top Productos</h3>
+                    <div id="top-products-list" class="space-y-3">
+                        <p class="text-slate-400 text-sm">Cargando...</p>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">📋 Pedidos Recientes</h3>
+                    <div id="recent-orders-list" class="space-y-3">
+                        <p class="text-slate-400 text-sm">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Tab -->
+        <section id="tab-products" class="tab-content hidden max-w-7xl mx-auto px-4 py-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-bold text-slate-800">Mis Productos</h2>
+                    <input id="product-search" type="text" placeholder="Buscar producto..."
+                        class="text-sm border border-slate-200 rounded-xl px-3 py-2 w-48 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                        oninput="debouncedLoadProducts()">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportProductsCSV()" class="bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors" title="Exportar CSV">📥 CSV</button>
+                    <button onclick="openProductModal()" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2">
+                        <span class="text-lg">+</span> Nuevo Producto
+                    </button>
+                </div>
+            </div>
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <p class="text-slate-400 text-sm col-span-full text-center py-8">Cargando productos...</p>
+            </div>
+        </section>
+
+        <!-- Orders Tab -->
+        <section id="tab-orders" class="tab-content hidden max-w-7xl mx-auto px-4 py-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-bold text-slate-800">Pedidos</h2>
+                    <select id="order-status-filter" onchange="loadOrders()" class="text-sm border border-slate-200 rounded-lg px-3 py-2">
+                        <option value="all">Todos</option>
+                        <option value="pending">Pendiente</option>
+                        <option value="ordered">Ordenado</option>
+                        <option value="shipped">Enviado</option>
+                        <option value="delivered">Entregado</option>
+                        <option value="cancelled">Cancelado</option>
+                        <option value="refunded">Reembolso</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportOrdersCSV()" class="bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors" title="Exportar CSV">📥 CSV</button>
+                    <button onclick="openOrderModal()" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2">
+                        <span class="text-lg">+</span> Nuevo Pedido
+                    </button>
+                </div>
+            </div>
+            <div id="orders-table" class="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Producto</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Cliente</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Cant.</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Venta</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Ganancia</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Estado</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody">
+                        <tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">Cargando pedidos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Analytics Tab -->
+        <section id="tab-analytics" class="tab-content hidden max-w-7xl mx-auto px-4 py-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Analytics de Conversión</h2>
+                <select id="analytics-period" onchange="loadAnalytics()" class="text-sm border border-slate-200 rounded-lg px-3 py-2">
+                    <option value="today">Hoy</option>
+                    <option value="week" selected>Última semana</option>
+                    <option value="month">Último mes</option>
+                    <option value="all">Todo</option>
+                </select>
+            </div>
+
+            <!-- Funnel Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Búsquedas</p>
+                    <p id="an-searches" class="text-2xl font-extrabold text-slate-800">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Clicks</p>
+                    <p id="an-clicks" class="text-2xl font-extrabold text-blue-600">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">Tasa Conversión</p>
+                    <p id="an-conversion" class="text-2xl font-extrabold text-emerald-600">0%</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl p-5 border border-slate-200">
+                    <p class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-1">Clicks Afiliado</p>
+                    <p id="an-affiliate" class="text-2xl font-extrabold text-amber-600">0</p>
+                </div>
+            </div>
+
+            <!-- Secondary stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Favoritos</p>
+                    <p id="an-favorites" class="text-lg font-bold">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Alertas Creadas</p>
+                    <p id="an-alerts" class="text-lg font-bold">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Vistas de Anuncio</p>
+                    <p id="an-adviews" class="text-lg font-bold">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-xs text-slate-400 mb-1">Tasa Completar Ad</p>
+                    <p id="an-adcomplete" class="text-lg font-bold">0%</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- By Affiliate Network -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">💰 Clicks por Red de Afiliado</h3>
+                    <div id="an-network-list" class="space-y-3"><p class="text-slate-400 text-sm">Cargando...</p></div>
+                </div>
+                <!-- By Store -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">🏪 Top Tiendas</h3>
+                    <div id="an-stores-list" class="space-y-3"><p class="text-slate-400 text-sm">Cargando...</p></div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Top Searches -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">🔍 Top Búsquedas</h3>
+                    <div id="an-searches-list" class="space-y-2"><p class="text-slate-400 text-sm">Cargando...</p></div>
+                </div>
+                <!-- Top Products -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">🏆 Productos Más Clickeados</h3>
+                    <div id="an-products-list" class="space-y-2"><p class="text-slate-400 text-sm">Cargando...</p></div>
+                </div>
+            </div>
+
+            <!-- Device + Daily Trend -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">📱 Dispositivos</h3>
+                    <div id="an-devices" class="flex gap-4 items-end h-24"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4">📅 Tendencia Diaria (7 días)</h3>
+                    <div id="an-daily" class="flex gap-2 items-end h-24"></div>
+                </div>
+            </div>
+
+            <!-- Hourly Heatmap -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">🕐 Distribución por Hora (últimas 24h)</h3>
+                <div id="an-hourly" class="flex gap-1 items-end h-20"></div>
+            </div>
+        </section>
+
+        <!-- Suppliers Tab -->
+        <section id="tab-suppliers" class="tab-content hidden max-w-7xl mx-auto px-4 py-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Monitor de Proveedores</h2>
+                    <p class="text-sm text-slate-500 mt-1">Verifica precios y stock de tus productos en AliExpress y otros proveedores</p>
+                </div>
+                <button id="supplier-check-btn" onclick="runSupplierCheck()" class="bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors flex items-center gap-2">
+                    🔍 Verificar Todo
+                </button>
+            </div>
+
+            <!-- Last Check Summary -->
+            <div id="supplier-summary" class="hidden grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                    <p class="text-xs text-slate-400 mb-1">Verificados</p>
+                    <p id="sc-total" class="text-lg font-bold text-slate-800">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                    <p class="text-xs text-slate-400 mb-1">Cambios Precio</p>
+                    <p id="sc-price" class="text-lg font-bold text-amber-600">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                    <p class="text-xs text-slate-400 mb-1">Sin Stock</p>
+                    <p id="sc-oos" class="text-lg font-bold text-red-500">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                    <p class="text-xs text-slate-400 mb-1">De Vuelta</p>
+                    <p id="sc-back" class="text-lg font-bold text-emerald-600">0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                    <p class="text-xs text-slate-400 mb-1">Errores</p>
+                    <p id="sc-errors" class="text-lg font-bold text-slate-400">0</p>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div id="supplier-progress" class="hidden mb-6">
+                <div class="bg-white rounded-xl p-6 border border-slate-200 text-center">
+                    <div class="inline-block animate-spin text-3xl mb-2">🔄</div>
+                    <p class="text-sm font-semibold text-slate-600">Verificando productos con proveedores...</p>
+                    <p class="text-xs text-slate-400 mt-1">Esto puede tardar 30-60 segundos</p>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div id="supplier-results" class="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase">Producto</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Tienda</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Tu Costo</th>
+                            <th class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase">Precio Proveedor</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Stock</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase">Cambios</th>
+                        </tr>
+                    </thead>
+                    <tbody id="supplier-tbody">
+                        <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Haz clic en "Verificar Todo" para comenzar</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay bg-black/40">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto p-8">
+            <h3 id="product-modal-title" class="text-xl font-bold text-slate-800 mb-6">Nuevo Producto</h3>
+            <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+                <input type="hidden" id="pf-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Producto *</label>
+                    <input id="pf-title" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Ej: Audífonos Bluetooth TWS">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Costo (MXN) *</label>
+                        <input id="pf-cost" type="number" step="0.01" min="0" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="150.00" oninput="updateMarginPreview()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Precio Venta (MXN) *</label>
+                        <input id="pf-sell" type="number" step="0.01" min="0" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="350.00" oninput="updateMarginPreview()">
+                    </div>
+                </div>
+                <div id="margin-preview" class="text-center py-2 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-sm hidden">
+                    Margen: 0% — Ganancia: $0.00
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tienda Origen</label>
+                        <select id="pf-source-store" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                            <option>AliExpress</option>
+                            <option>Shein</option>
+                            <option>Temu</option>
+                            <option>Amazon</option>
+                            <option>1688</option>
+                            <option>Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
+                        <input id="pf-category" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="Electrónica">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">URL del Proveedor</label>
+                    <input id="pf-source-url" type="url" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="https://aliexpress.com/item/...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">URL de Imagen</label>
+                    <input id="pf-image" type="url" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="https://...">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">SKU</label>
+                        <input id="pf-sku" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="AUD-BT-001">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Stock</label>
+                        <select id="pf-stock" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                            <option value="in_stock">En Stock</option>
+                            <option value="low_stock">Stock Bajo</option>
+                            <option value="out_of_stock">Sin Stock</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Notas</label>
+                    <textarea id="pf-notes" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none resize-none" placeholder="Notas internas..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" class="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors">Guardar</button>
+                    <button type="button" onclick="closeProductModal()" class="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay bg-black/40">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto p-8">
+            <h3 id="order-modal-title" class="text-xl font-bold text-slate-800 mb-6">Nuevo Pedido</h3>
+            <form id="order-form" onsubmit="saveOrder(event)" class="space-y-4">
+                <input type="hidden" id="of-id">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Producto *</label>
+                    <select id="of-product" onchange="autoFillOrderPrices()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                        <option value="">— Seleccionar producto —</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">O escribe el nombre del producto</label>
+                    <input id="of-product-title" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="Nombre del producto">
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cantidad</label>
+                        <input id="of-qty" type="number" min="1" value="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" oninput="recalcOrderTotals()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Costo Total</label>
+                        <input id="of-cost" type="number" step="0.01" min="0" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Venta Total</label>
+                        <input id="of-sell" type="number" step="0.01" min="0" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cliente</label>
+                        <input id="of-customer" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="Nombre">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contacto</label>
+                        <input id="of-contact" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="WhatsApp / Email">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Plataforma</label>
+                        <select id="of-platform" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                            <option>Marketplace</option>
+                            <option>Facebook</option>
+                            <option>Instagram</option>
+                            <option>WhatsApp</option>
+                            <option>MercadoLibre</option>
+                            <option>Amazon</option>
+                            <option>Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Estado</label>
+                        <select id="of-status" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none">
+                            <option value="pending">Pendiente</option>
+                            <option value="ordered">Ordenado al proveedor</option>
+                            <option value="shipped">Enviado</option>
+                            <option value="delivered">Entregado</option>
+                            <option value="cancelled">Cancelado</option>
+                            <option value="refunded">Reembolso</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">No. Rastreo</label>
+                        <input id="of-tracking" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="Tracking number">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">ID Orden Proveedor</label>
+                        <input id="of-supplier-id" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none" placeholder="AE-123456">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Notas</label>
+                    <textarea id="of-notes" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary outline-none resize-none" placeholder="Notas del pedido..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" class="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors">Guardar</button>
+                    <button type="button" onclick="closeOrderModal()" class="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-800 text-white px-5 py-3 rounded-xl shadow-lg font-medium text-sm transition-all"></div>
+
+<script>
+// ============================================================
+// State
+// ============================================================
+let ADMIN_KEY = '';
+const API_BASE = '/api/admin/dropship';
+let allProducts = []; // cached for order form dropdown
+
+// ============================================================
+// Auth
+// ============================================================
+async function verifyAdminKey() {
+    const key = document.getElementById('admin-key-input').value.trim();
+    if (!key) return;
+    ADMIN_KEY = key;
+    try {
+        const res = await apiFetch('/stats?period=month');
+        if (res.ok) {
+            sessionStorage.setItem('ds_admin_key', key);
+            document.getElementById('auth-gate').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadAll();
+        } else {
+            document.getElementById('auth-error').classList.remove('hidden');
+            ADMIN_KEY = '';
+        }
+    } catch {
+        document.getElementById('auth-error').classList.remove('hidden');
+        ADMIN_KEY = '';
+    }
+}
+
+function logout() {
+    sessionStorage.removeItem('ds_admin_key');
+    ADMIN_KEY = '';
+    location.reload();
+}
+
+// Auto-login from session
+(function() {
+    const saved = sessionStorage.getItem('ds_admin_key');
+    if (saved) {
+        ADMIN_KEY = saved;
+        document.getElementById('auth-gate').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        setTimeout(loadAll, 100);
+    }
+})();
+
+// ============================================================
+// API Helper
+// ============================================================
+function apiFetch(path, options = {}) {
+    const url = API_BASE + path;
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': ADMIN_KEY,
+            ...(options.headers || {})
+        }
+    });
+}
+
+// ============================================================
+// Tabs
+// ============================================================
+function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('tab-active');
+        el.classList.add('text-slate-400');
+    });
+    document.getElementById(`tab-${tab}`).classList.remove('hidden');
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('tab-active');
+    document.querySelector(`[data-tab="${tab}"]`).classList.remove('text-slate-400');
+}
+
+// ============================================================
+// Load All Data
+// ============================================================
+function loadAll() {
+    loadStats();
+    loadProducts();
+    loadOrders();
+    loadAnalytics();
+    renderNotifications();
+    requestNotifPermission();
+    // Check for new activity every 60 seconds
+    checkForNewActivity();
+    setInterval(checkForNewActivity, 60000);
+}
+
+// ============================================================
+// Dashboard Stats
+// ============================================================
+async function loadStats() {
+    try {
+        const period = document.getElementById('period-select').value;
+        const res = await apiFetch(`/stats?period=${period}`);
+        const data = await res.json();
+        if (!data.summary) return;
+
+        const s = data.summary;
+        document.getElementById('stat-revenue').textContent = `$${formatNum(s.totalRevenue)}`;
+        document.getElementById('stat-profit').textContent = `$${formatNum(s.totalProfit)}`;
+        document.getElementById('stat-orders').textContent = s.totalOrders;
+        document.getElementById('stat-margin').textContent = `${s.avgMargin}%`;
+        document.getElementById('stat-active-products').textContent = s.activeProducts;
+        document.getElementById('stat-pending').textContent = s.pendingOrders;
+        document.getElementById('stat-delivered').textContent = s.completedOrders;
+        document.getElementById('stat-low-stock').textContent = s.lowStock;
+
+        // Top products
+        const topEl = document.getElementById('top-products-list');
+        if (data.topProducts && data.topProducts.length > 0) {
+            topEl.innerHTML = data.topProducts.map((p, i) => `
+                <div class="flex items-center justify-between py-2 ${i > 0 ? 'border-t border-slate-100' : ''}">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-400 w-5">#${i + 1}</span>
+                        <span class="text-sm font-semibold text-slate-700 truncate max-w-[180px]">${esc(p.title)}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm font-bold text-emerald-600">$${formatNum(p.profit)}</span>
+                        <span class="text-xs text-slate-400 ml-1">(${p.orders} ventas)</span>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            topEl.innerHTML = '<p class="text-slate-400 text-sm">Sin datos aún</p>';
+        }
+
+        // Recent orders
+        const recEl = document.getElementById('recent-orders-list');
+        if (data.recentOrders && data.recentOrders.length > 0) {
+            recEl.innerHTML = data.recentOrders.slice(0, 5).map(o => `
+                <div class="flex items-center justify-between py-2 border-t border-slate-100 first:border-0">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700 truncate max-w-[180px]">${esc(o.product_title)}</p>
+                        <p class="text-xs text-slate-400">${o.customer_name || 'Sin cliente'} · ${timeAgo(o.created_at)}</p>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded-full status-${o.status}">${statusLabel(o.status)}</span>
+                </div>
+            `).join('');
+        } else {
+            recEl.innerHTML = '<p class="text-slate-400 text-sm">Sin pedidos aún</p>';
+        }
+    } catch (err) {
+        console.error('Stats error:', err);
+    }
+}
+
+// ============================================================
+// Products
+// ============================================================
+let _productSearchTimer = null;
+function debouncedLoadProducts() {
+    clearTimeout(_productSearchTimer);
+    _productSearchTimer = setTimeout(loadProducts, 400);
+}
+
+async function loadProducts() {
+    try {
+        const search = document.getElementById('product-search')?.value || '';
+        const res = await apiFetch(`/products?search=${encodeURIComponent(search)}`);
+        const data = await res.json();
+        allProducts = data.products || [];
+        renderProducts(allProducts);
+    } catch (err) {
+        console.error('Products error:', err);
+    }
+}
+
+function renderProducts(products) {
+    const grid = document.getElementById('products-grid');
+    if (products.length === 0) {
+        grid.innerHTML = '<p class="text-slate-400 text-sm col-span-full text-center py-8">No hay productos. ¡Agrega tu primero!</p>';
+        return;
+    }
+    grid.innerHTML = products.map(p => {
+        const margin = p.margin_pct || (p.cost_price > 0 ? (((p.sell_price - p.cost_price) / p.cost_price) * 100).toFixed(1) : 0);
+        const profit = (p.sell_price - p.cost_price).toFixed(2);
+        return `
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow fade-in">
+            ${p.image_url ? `<img src="${esc(p.image_url)}" class="w-full h-40 object-cover" onerror="this.remove()">` : '<div class="w-full h-24 bg-gradient-to-br from-emerald-50 to-slate-100 flex items-center justify-center text-3xl">📦</div>'}
+            <div class="p-4">
+                <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-bold text-slate-800 text-sm leading-tight">${esc(p.title)}</h4>
+                    <span class="stock-${p.stock_status} text-xs font-bold ml-2 whitespace-nowrap">${stockLabel(p.stock_status)}</span>
+                </div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">${esc(p.source_store || 'AliExpress')}</span>
+                    ${p.category ? `<span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">${esc(p.category)}</span>` : ''}
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                    <div>
+                        <p class="text-xs text-slate-400">Costo</p>
+                        <p class="text-sm font-bold text-red-500">$${formatNum(p.cost_price)}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Venta</p>
+                        <p class="text-sm font-bold text-emerald-600">$${formatNum(p.sell_price)}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Margen</p>
+                        <p class="text-sm font-bold text-blue-600">${margin}%</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="flex-1 text-xs py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">✏️ Editar</button>
+                    <button onclick="deleteProduct('${p.id}')" class="text-xs py-2 px-3 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100 transition-colors">🗑️</button>
+                    <button onclick='quickOrder(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="text-xs py-2 px-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold hover:bg-emerald-100 transition-colors">🛒</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openProductModal(product = null) {
+    const modal = document.getElementById('product-modal');
+    document.getElementById('product-modal-title').textContent = product ? 'Editar Producto' : 'Nuevo Producto';
+    document.getElementById('pf-id').value = product?.id || '';
+    document.getElementById('pf-title').value = product?.title || '';
+    document.getElementById('pf-cost').value = product?.cost_price || '';
+    document.getElementById('pf-sell').value = product?.sell_price || '';
+    document.getElementById('pf-source-store').value = product?.source_store || 'AliExpress';
+    document.getElementById('pf-category').value = product?.category || '';
+    document.getElementById('pf-source-url').value = product?.source_url || '';
+    document.getElementById('pf-image').value = product?.image_url || '';
+    document.getElementById('pf-sku').value = product?.sku || '';
+    document.getElementById('pf-stock').value = product?.stock_status || 'in_stock';
+    document.getElementById('pf-notes').value = product?.notes || '';
+    updateMarginPreview();
+    modal.classList.remove('hidden');
+}
+
+function closeProductModal() {
+    document.getElementById('product-modal').classList.add('hidden');
+    document.getElementById('product-form').reset();
+    document.getElementById('margin-preview').classList.add('hidden');
+}
+
+function editProduct(p) { openProductModal(p); }
+
+function updateMarginPreview() {
+    const cost = parseFloat(document.getElementById('pf-cost').value) || 0;
+    const sell = parseFloat(document.getElementById('pf-sell').value) || 0;
+    const preview = document.getElementById('margin-preview');
+    if (cost > 0 && sell > 0) {
+        const margin = ((sell - cost) / cost * 100).toFixed(1);
+        const profit = (sell - cost).toFixed(2);
+        preview.textContent = `Margen: ${margin}% — Ganancia: $${profit} MXN`;
+        preview.classList.remove('hidden');
+        preview.className = preview.className.replace(/bg-\w+-50 text-\w+-700/g, '');
+        if (sell > cost) {
+            preview.classList.add('bg-emerald-50', 'text-emerald-700');
+        } else {
+            preview.classList.add('bg-red-50', 'text-red-700');
+        }
+    } else {
+        preview.classList.add('hidden');
+    }
+}
+
+async function saveProduct(e) {
+    e.preventDefault();
+    const id = document.getElementById('pf-id').value;
+    const body = {
+        title: document.getElementById('pf-title').value,
+        cost_price: parseFloat(document.getElementById('pf-cost').value),
+        sell_price: parseFloat(document.getElementById('pf-sell').value),
+        source_store: document.getElementById('pf-source-store').value,
+        category: document.getElementById('pf-category').value || 'General',
+        source_url: document.getElementById('pf-source-url').value,
+        image_url: document.getElementById('pf-image').value,
+        sku: document.getElementById('pf-sku').value,
+        stock_status: document.getElementById('pf-stock').value,
+        notes: document.getElementById('pf-notes').value
+    };
+    try {
+        let res;
+        if (id) {
+            res = await apiFetch(`/products/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        } else {
+            res = await apiFetch('/products', { method: 'POST', body: JSON.stringify(body) });
+        }
+        if (res.ok) {
+            toast(id ? 'Producto actualizado ✅' : 'Producto creado ✅');
+            closeProductModal();
+            loadProducts();
+            loadStats();
+        } else {
+            const err = await res.json();
+            toast(err.error || 'Error al guardar', true);
+        }
+    } catch (err) {
+        toast('Error de conexión', true);
+    }
+}
+
+async function deleteProduct(id) {
+    if (!confirm('¿Eliminar este producto?')) return;
+    try {
+        const res = await apiFetch(`/products/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            toast('Producto eliminado');
+            loadProducts();
+            loadStats();
+        }
+    } catch { toast('Error al eliminar', true); }
+}
+
+// ============================================================
+// Orders
+// ============================================================
+async function loadOrders() {
+    try {
+        const status = document.getElementById('order-status-filter')?.value || 'all';
+        const res = await apiFetch(`/orders?status=${status}`);
+        const data = await res.json();
+        renderOrders(data.orders || []);
+    } catch (err) {
+        console.error('Orders error:', err);
+    }
+}
+
+function renderOrders(orders) {
+    const tbody = document.getElementById('orders-tbody');
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">Sin pedidos</td></tr>';
+        return;
+    }
+    tbody.innerHTML = orders.map(o => {
+        const profit = (parseFloat(o.sell_total) - parseFloat(o.cost_total)).toFixed(2);
+        return `
+        <tr class="border-t border-slate-100 hover:bg-slate-50">
+            <td class="px-4 py-3">
+                <p class="font-semibold text-slate-700 text-sm truncate max-w-[200px]">${esc(o.product_title)}</p>
+                <p class="text-xs text-slate-400">${timeAgo(o.created_at)}</p>
+            </td>
+            <td class="px-4 py-3 text-sm text-slate-600">${esc(o.customer_name || '—')}</td>
+            <td class="px-4 py-3 text-sm text-center">${o.quantity}</td>
+            <td class="px-4 py-3 text-sm text-right font-bold">$${formatNum(o.sell_total)}</td>
+            <td class="px-4 py-3 text-sm text-right font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-500'}">$${formatNum(profit)}</td>
+            <td class="px-4 py-3 text-center">
+                <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold px-2 py-1 rounded-full border-0 cursor-pointer status-${o.status}">
+                    <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pendiente</option>
+                    <option value="ordered" ${o.status === 'ordered' ? 'selected' : ''}>Ordenado</option>
+                    <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Enviado</option>
+                    <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Entregado</option>
+                    <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>
+                    <option value="refunded" ${o.status === 'refunded' ? 'selected' : ''}>Reembolso</option>
+                </select>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <button onclick='editOrder(${JSON.stringify(o).replace(/'/g, "&#39;")})' class="text-xs text-blue-500 hover:text-blue-700 font-bold">✏️</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function openOrderModal(order = null) {
+    const modal = document.getElementById('order-modal');
+    document.getElementById('order-modal-title').textContent = order ? 'Editar Pedido' : 'Nuevo Pedido';
+    document.getElementById('of-id').value = order?.id || '';
+    document.getElementById('of-product-title').value = order?.product_title || '';
+    document.getElementById('of-qty').value = order?.quantity || 1;
+    document.getElementById('of-cost').value = order?.cost_total || '';
+    document.getElementById('of-sell').value = order?.sell_total || '';
+    document.getElementById('of-customer').value = order?.customer_name || '';
+    document.getElementById('of-contact').value = order?.customer_contact || '';
+    document.getElementById('of-platform').value = order?.platform || 'Marketplace';
+    document.getElementById('of-status').value = order?.status || 'pending';
+    document.getElementById('of-tracking').value = order?.tracking_number || '';
+    document.getElementById('of-supplier-id').value = order?.supplier_order_id || '';
+    document.getElementById('of-notes').value = order?.notes || '';
+
+    // Populate product dropdown
+    const select = document.getElementById('of-product');
+    select.innerHTML = '<option value="">— Seleccionar producto —</option>';
+    allProducts.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.title} ($${p.cost_price} → $${p.sell_price})`;
+        opt.dataset.cost = p.cost_price;
+        opt.dataset.sell = p.sell_price;
+        opt.dataset.title = p.title;
+        if (order?.product_id === p.id) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    modal.classList.remove('hidden');
+}
+
+function closeOrderModal() {
+    document.getElementById('order-modal').classList.add('hidden');
+    document.getElementById('order-form').reset();
+}
+
+function editOrder(o) { openOrderModal(o); }
+
+function autoFillOrderPrices() {
+    const select = document.getElementById('of-product');
+    const opt = select.selectedOptions[0];
+    if (opt && opt.value) {
+        const qty = parseInt(document.getElementById('of-qty').value) || 1;
+        document.getElementById('of-product-title').value = opt.dataset.title || '';
+        document.getElementById('of-cost').value = (parseFloat(opt.dataset.cost) * qty).toFixed(2);
+        document.getElementById('of-sell').value = (parseFloat(opt.dataset.sell) * qty).toFixed(2);
+    }
+}
+
+function recalcOrderTotals() {
+    const select = document.getElementById('of-product');
+    const opt = select.selectedOptions[0];
+    if (opt && opt.value) {
+        const qty = parseInt(document.getElementById('of-qty').value) || 1;
+        document.getElementById('of-cost').value = (parseFloat(opt.dataset.cost) * qty).toFixed(2);
+        document.getElementById('of-sell').value = (parseFloat(opt.dataset.sell) * qty).toFixed(2);
+    }
+}
+
+function quickOrder(product) {
+    openOrderModal({
+        product_id: product.id,
+        product_title: product.title,
+        quantity: 1,
+        cost_total: product.cost_price,
+        sell_total: product.sell_price,
+        status: 'pending'
+    });
+}
+
+async function saveOrder(e) {
+    e.preventDefault();
+    const id = document.getElementById('of-id').value;
+    const productSelect = document.getElementById('of-product');
+    const body = {
+        product_id: productSelect.value || null,
+        product_title: document.getElementById('of-product-title').value || productSelect.selectedOptions[0]?.dataset?.title || 'Producto',
+        quantity: parseInt(document.getElementById('of-qty').value) || 1,
+        cost_total: parseFloat(document.getElementById('of-cost').value),
+        sell_total: parseFloat(document.getElementById('of-sell').value),
+        customer_name: document.getElementById('of-customer').value,
+        customer_contact: document.getElementById('of-contact').value,
+        platform: document.getElementById('of-platform').value,
+        status: document.getElementById('of-status').value,
+        tracking_number: document.getElementById('of-tracking').value,
+        supplier_order_id: document.getElementById('of-supplier-id').value,
+        notes: document.getElementById('of-notes').value
+    };
+    try {
+        let res;
+        if (id) {
+            res = await apiFetch(`/orders/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        } else {
+            res = await apiFetch('/orders', { method: 'POST', body: JSON.stringify(body) });
+        }
+        if (res.ok) {
+            toast(id ? 'Pedido actualizado ✅' : 'Pedido registrado ✅');
+            closeOrderModal();
+            loadOrders();
+            loadStats();
+        } else {
+            const err = await res.json();
+            toast(err.error || 'Error al guardar', true);
+        }
+    } catch { toast('Error de conexión', true); }
+}
+
+async function updateOrderStatus(id, status) {
+    try {
+        const res = await apiFetch(`/orders/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+        if (res.ok) {
+            toast(`Estado: ${statusLabel(status)} ✅`);
+            loadStats();
+        }
+    } catch { toast('Error al actualizar', true); }
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+function formatNum(n) {
+    return parseFloat(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function esc(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+}
+
+function statusLabel(s) {
+    const labels = { pending: 'Pendiente', ordered: 'Ordenado', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado', refunded: 'Reembolso' };
+    return labels[s] || s;
+}
+
+function stockLabel(s) {
+    const labels = { in_stock: '✅ Stock', low_stock: '⚠️ Bajo', out_of_stock: '❌ Agotado' };
+    return labels[s] || s;
+}
+
+function timeAgo(date) {
+    const diff = (Date.now() - new Date(date).getTime()) / 1000;
+    if (diff < 60) return 'Ahora';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}d`;
+    return new Date(date).toLocaleDateString('es-MX');
+}
+
+function toast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg font-medium text-sm transition-all ${isError ? 'bg-red-600 text-white' : 'bg-slate-800 text-white'}`;
+    setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+// ============================================================
+// Supplier Auto-Check
+// ============================================================
+async function runSupplierCheck() {
+    const btn = document.getElementById('supplier-check-btn');
+    const progress = document.getElementById('supplier-progress');
+    const summary = document.getElementById('supplier-summary');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Verificando...';
+    progress.classList.remove('hidden');
+    summary.classList.add('hidden');
+
+    try {
+        const res = await fetch('/api/admin/supplier-check', {
+            method: 'POST',
+            headers: { 'x-admin-key': ADMIN_KEY, 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+
+        progress.classList.add('hidden');
+
+        if (data.error) {
+            toast(data.error, true);
+            return;
+        }
+
+        // Show summary
+        if (data.summary) {
+            summary.classList.remove('hidden');
+            document.getElementById('sc-total').textContent = data.summary.total;
+            document.getElementById('sc-price').textContent = data.summary.priceChanges;
+            document.getElementById('sc-oos').textContent = data.summary.outOfStock;
+            document.getElementById('sc-back').textContent = data.summary.backInStock;
+            document.getElementById('sc-errors').textContent = data.summary.errors;
+        }
+
+        // Render results table
+        const tbody = document.getElementById('supplier-tbody');
+        if (!data.results || data.results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay productos con URL de proveedor</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.results.map(r => {
+            const hasChanges = r.changes && r.changes.length > 0;
+            const priceChange = r.changes?.find(c => c.type === 'price_change');
+            const stockChange = r.changes?.find(c => c.type === 'out_of_stock' || c.type === 'back_in_stock');
+
+            let changesBadges = '';
+            if (r.error) {
+                changesBadges = `<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">⚠️ Error</span>`;
+            } else if (!hasChanges) {
+                changesBadges = `<span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">✅ OK</span>`;
+            } else {
+                if (priceChange) {
+                    const icon = priceChange.direction === 'up' ? '📈' : '📉';
+                    const color = priceChange.direction === 'up' ? 'red' : 'emerald';
+                    changesBadges += `<span class="text-xs bg-${color}-100 text-${color}-700 px-2 py-0.5 rounded-full">${icon} ${priceChange.pct}%</span> `;
+                }
+                if (stockChange) {
+                    const isOOS = stockChange.type === 'out_of_stock';
+                    changesBadges += `<span class="text-xs ${isOOS ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'} px-2 py-0.5 rounded-full">${isOOS ? '❌ Agotado' : '✅ Volvió'}</span>`;
+                }
+            }
+
+            return `
+            <tr class="border-t border-slate-100 hover:bg-slate-50 ${hasChanges ? 'bg-amber-50/30' : ''}">
+                <td class="px-4 py-3">
+                    <p class="font-semibold text-slate-700 text-sm truncate max-w-[200px]">${esc(r.title)}</p>
+                    <a href="${esc(r.source_url)}" target="_blank" class="text-[10px] text-blue-400 hover:underline truncate block max-w-[200px]">🔗 Ver en proveedor</a>
+                </td>
+                <td class="px-4 py-3 text-center text-xs font-medium">${esc(r.source_store || '—')}</td>
+                <td class="px-4 py-3 text-right font-bold text-sm">$${formatNum(r.current_cost)}</td>
+                <td class="px-4 py-3 text-right font-bold text-sm ${priceChange ? (priceChange.direction === 'up' ? 'text-red-500' : 'text-emerald-600') : 'text-slate-600'}">
+                    ${r.supplier_price !== null ? '$' + formatNum(r.supplier_price) : '—'}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    ${r.error ? '<span class="text-xs text-slate-400">?</span>' : r.supplier_in_stock ? '<span class="text-emerald-600 font-bold">✅</span>' : '<span class="text-red-500 font-bold">❌</span>'}
+                </td>
+                <td class="px-4 py-3 text-center">${changesBadges}</td>
+            </tr>`;
+        }).join('');
+
+        // Refresh products if changes were detected
+        if (data.summary && (data.summary.priceChanges > 0 || data.summary.outOfStock > 0 || data.summary.backInStock > 0)) {
+            loadProducts();
+            loadStats();
+            const total = data.summary.priceChanges + data.summary.outOfStock + data.summary.backInStock;
+            addNotification('🔍 Verificación Completada', `${total} cambio(s) detectado(s) en proveedores`, '🔍');
+            toast(`${total} cambio(s) detectado(s) y actualizados ⚡`);
+        } else {
+            toast('Todo OK — sin cambios detectados ✅');
+        }
+    } catch (err) {
+        progress.classList.add('hidden');
+        toast('Error al verificar proveedores', true);
+        console.error('Supplier check error:', err);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Verificar Todo';
+    }
+}
+
+// ============================================================
+// Notifications System
+// ============================================================
+let notifications = JSON.parse(localStorage.getItem('ds_notifications') || '[]');
+let lastOrderCount = parseInt(localStorage.getItem('ds_last_order_count') || '0');
+let lastProductCount = parseInt(localStorage.getItem('ds_last_product_count') || '0');
+
+function toggleNotifications() {
+    const panel = document.getElementById('notif-panel');
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) markNotificationsRead();
+}
+
+function addNotification(title, body, icon = '📦') {
+    const notif = { id: Date.now(), title, body, icon, time: new Date().toISOString(), read: false };
+    notifications.unshift(notif);
+    if (notifications.length > 50) notifications = notifications.slice(0, 50);
+    localStorage.setItem('ds_notifications', JSON.stringify(notifications));
+    renderNotifications();
+    // Try browser push
+    if (Notification.permission === 'granted') {
+        try { new Notification(title, { body, icon: '/images/icons/icon-192x192.png' }); } catch {}
+    }
+}
+
+function renderNotifications() {
+    const list = document.getElementById('notif-list');
+    const badge = document.getElementById('notif-badge');
+    const unread = notifications.filter(n => !n.read).length;
+    badge.textContent = unread;
+    badge.classList.toggle('hidden', unread === 0);
+    if (notifications.length === 0) {
+        list.innerHTML = '<p class="text-sm text-slate-400 p-3 text-center">Sin notificaciones</p>';
+        return;
+    }
+    list.innerHTML = notifications.slice(0, 20).map(n => `
+        <div class="flex gap-3 p-3 rounded-xl hover:bg-slate-50 ${n.read ? '' : 'bg-emerald-50/50'} transition-colors">
+            <span class="text-xl flex-shrink-0">${n.icon}</span>
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-slate-700">${esc(n.title)}</p>
+                <p class="text-xs text-slate-500 truncate">${esc(n.body)}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">${timeAgo(n.time)}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+function markNotificationsRead() {
+    notifications.forEach(n => n.read = true);
+    localStorage.setItem('ds_notifications', JSON.stringify(notifications));
+    renderNotifications();
+}
+
+function clearNotifications() {
+    notifications = [];
+    localStorage.setItem('ds_notifications', '[]');
+    renderNotifications();
+}
+
+async function checkForNewActivity() {
+    try {
+        const res = await apiFetch('/stats?period=all');
+        const data = await res.json();
+        if (!data.summary) return;
+
+        const currentOrders = data.summary.totalOrders;
+        const currentProducts = data.summary.totalProducts;
+
+        if (lastOrderCount > 0 && currentOrders > lastOrderCount) {
+            const diff = currentOrders - lastOrderCount;
+            addNotification('🛒 Nuevos Pedidos', `${diff} nuevo(s) pedido(s) registrado(s)`, '🛒');
+        }
+        if (lastProductCount > 0 && currentProducts > lastProductCount) {
+            const diff = currentProducts - lastProductCount;
+            addNotification('📦 Nuevos Productos', `${diff} nuevo(s) producto(s) agregado(s)`, '📦');
+        }
+        if (data.summary.lowStock > 0) {
+            addNotification('⚠️ Stock Bajo', `${data.summary.lowStock} producto(s) con stock bajo`, '⚠️');
+        }
+
+        lastOrderCount = currentOrders;
+        lastProductCount = currentProducts;
+        localStorage.setItem('ds_last_order_count', currentOrders);
+        localStorage.setItem('ds_last_product_count', currentProducts);
+    } catch {}
+}
+
+// Request browser notification permission
+function requestNotifPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+// Close notif panel on outside click
+document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notif-panel');
+    if (panel && !panel.classList.contains('hidden') && !e.target.closest('#notif-panel') && !e.target.closest('[onclick*="toggleNotifications"]')) {
+        panel.classList.add('hidden');
+    }
+});
+
+// ============================================================
+// CSV Export
+// ============================================================
+function downloadCSV(filename, csvContent) {
+    const BOM = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function csvEscape(val) {
+    const s = String(val ?? '');
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+}
+
+function exportProductsCSV() {
+    if (allProducts.length === 0) { toast('No hay productos para exportar', true); return; }
+    const headers = ['Título', 'Costo MXN', 'Precio Venta MXN', 'Margen %', 'Ganancia MXN', 'Tienda Origen', 'Categoría', 'SKU', 'Stock', 'URL Proveedor', 'Activo', 'Notas', 'Creado'];
+    const rows = allProducts.map(p => {
+        const margin = p.cost_price > 0 ? (((p.sell_price - p.cost_price) / p.cost_price) * 100).toFixed(1) : '0';
+        const profit = (p.sell_price - p.cost_price).toFixed(2);
+        return [p.title, p.cost_price, p.sell_price, margin, profit, p.source_store, p.category, p.sku, p.stock_status, p.source_url, p.is_active ? 'Sí' : 'No', p.notes, p.created_at?.slice(0, 10)].map(csvEscape).join(',');
+    });
+    downloadCSV(`lumu_productos_${new Date().toISOString().slice(0,10)}.csv`, headers.join(',') + '\n' + rows.join('\n'));
+    toast(`${allProducts.length} productos exportados 📥`);
+}
+
+async function exportOrdersCSV() {
+    try {
+        const res = await apiFetch('/orders?status=all');
+        const data = await res.json();
+        const orders = data.orders || [];
+        if (orders.length === 0) { toast('No hay pedidos para exportar', true); return; }
+        const headers = ['Producto', 'Cliente', 'Contacto', 'Cantidad', 'Costo Total', 'Venta Total', 'Ganancia', 'Margen %', 'Plataforma', 'Estado', 'No. Rastreo', 'ID Proveedor', 'Notas', 'Fecha'];
+        const rows = orders.map(o => {
+            const profit = (parseFloat(o.sell_total) - parseFloat(o.cost_total)).toFixed(2);
+            const margin = parseFloat(o.sell_total) > 0 ? (((parseFloat(o.sell_total) - parseFloat(o.cost_total)) / parseFloat(o.sell_total)) * 100).toFixed(1) : '0';
+            return [o.product_title, o.customer_name, o.customer_contact, o.quantity, o.cost_total, o.sell_total, profit, margin, o.platform, statusLabel(o.status), o.tracking_number, o.supplier_order_id, o.notes, o.created_at?.slice(0, 10)].map(csvEscape).join(',');
+        });
+        downloadCSV(`lumu_pedidos_${new Date().toISOString().slice(0,10)}.csv`, headers.join(',') + '\n' + rows.join('\n'));
+        toast(`${orders.length} pedidos exportados 📥`);
+    } catch { toast('Error al exportar pedidos', true); }
+}
+
+// ============================================================
+// Conversion Analytics
+// ============================================================
+async function loadAnalytics() {
+    try {
+        const period = document.getElementById('analytics-period')?.value || 'week';
+        const res = await fetch(`/api/admin/analytics?period=${period}`, {
+            headers: { 'x-admin-key': ADMIN_KEY }
+        });
+        const data = await res.json();
+        if (!data.summary) return;
+
+        const s = data.summary;
+        document.getElementById('an-searches').textContent = s.totalSearches;
+        document.getElementById('an-clicks').textContent = s.totalClicks;
+        document.getElementById('an-conversion').textContent = `${s.conversionRate}%`;
+        document.getElementById('an-affiliate').textContent = s.totalAffiliateClicks;
+        document.getElementById('an-favorites').textContent = s.totalFavorites;
+        document.getElementById('an-alerts').textContent = s.totalAlerts;
+        document.getElementById('an-adviews').textContent = s.totalAdViews;
+        document.getElementById('an-adcomplete').textContent = `${s.adCompletionRate}%`;
+
+        // Network breakdown
+        const netEl = document.getElementById('an-network-list');
+        const networkNames = { amazon: '🛒 Amazon', mercadolibre: '🟡 MercadoLibre', aliexpress: '🔴 AliExpress', skimlinks: '🔗 Skimlinks', none: '⬜ Sin afiliado' };
+        if (data.byNetwork && Object.keys(data.byNetwork).length > 0) {
+            const total = Object.values(data.byNetwork).reduce((a, b) => a + b, 0);
+            netEl.innerHTML = Object.entries(data.byNetwork).sort((a, b) => b[1] - a[1]).map(([net, count]) => {
+                const pct = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+                return `<div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${networkNames[net] || net}</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:${pct}%"></div></div>
+                        <span class="text-sm font-bold text-slate-600">${count} <span class="text-xs text-slate-400">(${pct}%)</span></span>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            netEl.innerHTML = '<p class="text-slate-400 text-sm">Sin datos</p>';
+        }
+
+        // Top Stores
+        const storesEl = document.getElementById('an-stores-list');
+        if (data.topStores && data.topStores.length > 0) {
+            storesEl.innerHTML = data.topStores.map((s, i) => `
+                <div class="flex items-center justify-between py-1 ${i > 0 ? 'border-t border-slate-50' : ''}">
+                    <span class="text-sm font-medium capitalize">${esc(s.store)}</span>
+                    <span class="text-sm font-bold text-blue-600">${s.clicks} clicks</span>
+                </div>
+            `).join('');
+        } else {
+            storesEl.innerHTML = '<p class="text-slate-400 text-sm">Sin datos</p>';
+        }
+
+        // Top Searches
+        const searchesEl = document.getElementById('an-searches-list');
+        if (data.topSearches && data.topSearches.length > 0) {
+            searchesEl.innerHTML = data.topSearches.map((s, i) => `
+                <div class="flex items-center justify-between py-1">
+                    <span class="text-sm text-slate-600 truncate max-w-[200px]">${esc(s.query)}</span>
+                    <span class="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded-full">${s.count}x</span>
+                </div>
+            `).join('');
+        } else {
+            searchesEl.innerHTML = '<p class="text-slate-400 text-sm">Sin datos</p>';
+        }
+
+        // Top Products
+        const productsEl = document.getElementById('an-products-list');
+        if (data.topProducts && data.topProducts.length > 0) {
+            productsEl.innerHTML = data.topProducts.map((p, i) => `
+                <div class="flex items-center justify-between py-1">
+                    <span class="text-sm text-slate-600 truncate max-w-[200px]">${esc(p.title)}</span>
+                    <span class="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">${p.clicks} clicks</span>
+                </div>
+            `).join('');
+        } else {
+            productsEl.innerHTML = '<p class="text-slate-400 text-sm">Sin datos</p>';
+        }
+
+        // Devices
+        const devEl = document.getElementById('an-devices');
+        const devTotal = Object.values(data.byDevice).reduce((a, b) => a + b, 0) || 1;
+        const devIcons = { mobile: '📱', desktop: '💻', tablet: '📲', unknown: '❓' };
+        devEl.innerHTML = Object.entries(data.byDevice).filter(([_, v]) => v > 0).map(([dev, count]) => {
+            const pct = ((count / devTotal) * 100).toFixed(0);
+            return `<div class="flex flex-col items-center gap-1 flex-1">
+                <div class="w-full bg-blue-100 rounded-t-lg" style="height:${Math.max(pct * 0.8, 4)}px"></div>
+                <span class="text-lg">${devIcons[dev] || '❓'}</span>
+                <span class="text-xs font-bold text-slate-600">${pct}%</span>
+                <span class="text-[10px] text-slate-400 capitalize">${dev}</span>
+            </div>`;
+        }).join('');
+
+        // Daily Trend
+        const dailyEl = document.getElementById('an-daily');
+        if (data.dailyTrend && data.dailyTrend.length > 0) {
+            const maxVal = Math.max(...data.dailyTrend.map(d => Math.max(d.clicks, d.searches)), 1);
+            dailyEl.innerHTML = data.dailyTrend.map(d => {
+                const hSearch = Math.max((d.searches / maxVal) * 80, 2);
+                const hClick = Math.max((d.clicks / maxVal) * 80, 2);
+                const dayLabel = d.date.slice(5); // MM-DD
+                return `<div class="flex flex-col items-center gap-1 flex-1">
+                    <div class="flex gap-0.5 items-end h-20">
+                        <div class="w-3 bg-slate-200 rounded-t" style="height:${hSearch}px" title="${d.searches} búsquedas"></div>
+                        <div class="w-3 bg-emerald-400 rounded-t" style="height:${hClick}px" title="${d.clicks} clicks"></div>
+                    </div>
+                    <span class="text-[10px] text-slate-400">${dayLabel}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // Hourly
+        const hourlyEl = document.getElementById('an-hourly');
+        if (data.hourlyDistribution) {
+            const maxH = Math.max(...data.hourlyDistribution, 1);
+            hourlyEl.innerHTML = data.hourlyDistribution.map((count, h) => {
+                const height = Math.max((count / maxH) * 60, 2);
+                const intensity = count > 0 ? Math.min(Math.round((count / maxH) * 100), 100) : 5;
+                return `<div class="flex flex-col items-center flex-1 gap-1">
+                    <div class="w-full rounded-t" style="height:${height}px;background:hsl(160,${intensity}%,${70 - intensity * 0.3}%)" title="${h}:00 — ${count} clicks"></div>
+                    ${h % 3 === 0 ? `<span class="text-[9px] text-slate-400">${h}h</span>` : ''}
+                </div>`;
+            }).join('');
+        }
+    } catch (err) {
+        console.error('Analytics load error:', err);
+    }
+}
+</script>
+</body>
+</html>

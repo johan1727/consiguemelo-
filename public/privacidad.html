@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - Lumu.ai</title>
+    <meta name="description" content="Política de privacidad de Lumu.ai. Conoce cómo protegemos tus datos personales y tu información de búsqueda.">
+    <link rel="canonical" href="https://lumu.dev/privacidad.html">
+    <meta property="og:title" content="Política de Privacidad - Lumu.ai">
+    <meta property="og:description" content="Conoce cómo Lumu.ai protege tus datos personales.">
+    <meta property="og:url" content="https://lumu.dev/privacidad.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] }, colors: { primary: '#10B981' } } } }</script>
+    <style>
+        .glass-header {
+            background: rgba(255, 255, 255, .85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(230, 235, 245, .8)
+        }
+    </style>
+</head>
+
+<body class="bg-[#F8FAFC] text-slate-800 font-sans min-h-screen">
+    <header class="w-full glass-header sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
+            <a href="/" class="flex items-center gap-2">
+                <div class="bg-primary p-1.5 rounded-lg shadow-sm"><svg class="w-4 h-4 text-white" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg></div>
+                <span class="text-lg font-display font-extrabold text-slate-900">Lumu<span
+                        class="text-primary">.ai</span></span>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-16">
+        <h1 class="text-4xl font-display font-black text-slate-900 mb-2">Política de Privacidad</h1>
+        <p class="text-slate-500 mb-10 font-medium">Última actualización: Febrero 2026</p>
+
+        <div class="space-y-10 text-slate-700 leading-relaxed">
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">1. Información que Recopilamos</h2>
+                <p>Al usar Lumu.ai, podemos recopilar:</p>
+                <ul class="list-disc pl-6 mt-2 space-y-1">
+                    <li><strong>Datos de cuenta:</strong> Nombre, email y foto de perfil cuando te registras con Google.
+                    </li>
+                    <li><strong>Historial de búsquedas:</strong> Las consultas que realizas en nuestra plataforma,
+                        asociadas a tu cuenta.</li>
+                    <li><strong>Favoritos:</strong> Productos que marcas con el corazón para guardar.</li>
+                    <li><strong>Datos de pago:</strong> Procesados de forma segura por Stripe — nunca almacenamos datos
+                        de tarjetas.</li>
+                    <li><strong>Datos de uso:</strong> Páginas visitadas, duración de sesión e interacciones generales
+                        con la plataforma.</li>
+                </ul>
+            </section>
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">2. Cómo Usamos Tu Información</h2>
+                <ul class="list-disc pl-6 mt-2 space-y-1">
+                    <li>Personalizar y mejorar tu experiencia de búsqueda de productos.</li>
+                    <li>Gestionar tu cuenta, suscripción y acceso al servicio premium.</li>
+                    <li>Enviarte notificaciones relevantes sobre tu cuenta (no spam comercial).</li>
+                    <li>Mejorar los algoritmos de nuestra IA de búsqueda de forma agregada y anónima.</li>
+                </ul>
+            </section>
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">3. Compartición de Datos</h2>
+                <p>No vendemos ni rentamos tu información personal a terceros. Sin embargo, utilizamos proveedores de
+                    infraestructura confiables:</p>
+                <ul class="list-disc pl-6 mt-2 space-y-1">
+                    <li><strong>Supabase:</strong> Para gestión de base de datos y autenticación segura.</li>
+                    <li><strong>Stripe:</strong> Para procesamiento de pagos bajo cumplimiento PCI-DSS.</li>
+                    <li><strong>Google:</strong> Para autenticación OAuth (inicio de sesión con Google).</li>
+                </ul>
+            </section>
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">4. Cookies y Almacenamiento Local</h2>
+                <p>Utilizamos <code class="bg-slate-100 px-1 py-0.5 rounded text-sm">localStorage</code> del navegador
+                    para recordar el conteo de búsquedas gratuitas. No utilizamos cookies de rastreo de terceros con
+                    fines publicitarios.</p>
+            </section>
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">5. Tus Derechos</h2>
+                <p>Tienes derecho a solicitar acceso, corrección o eliminación de tus datos personales en cualquier
+                    momento. Para ejercer estos derechos, contáctanos. También puedes eliminar tu cuenta directamente
+                    desde la configuración de tu perfil.</p>
+            </section>
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">6. Seguridad</h2>
+                <p>Implementamos medidas de seguridad estándar de la industria, incluyendo HTTPS, autenticación cifrada
+                    y Row Level Security (RLS) en nuestra base de datos, para proteger tu información de accesos no
+                    autorizados.</p>
+            </section>
+            <section>
+                <h2 class="text-xl font-display font-bold text-slate-900 mb-3">7. Contacto</h2>
+                <p>Si tienes preguntas sobre esta política de privacidad, puedes contactarnos a través de la plataforma
+                    o por correo electrónico.</p>
+            </section>
+        </div>
+        <a href="/"
+            class="mt-12 inline-flex items-center gap-2 bg-primary hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-md shadow-emerald-500/20">
+            ← Volver al inicio
+        </a>
+    </main>
+
+    <!-- Vercel Analytics -->
+    <script defer src="/_vercel/insights/script.js"></script>
+</body>
+
+</html>

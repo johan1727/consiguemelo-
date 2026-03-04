@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planes y Precios - Lumu</title>
+    <meta name="description" content="Elige el plan perfecto para ti. Compara precios con IA desde $0/mes. Plan Gratis, VIP y B2B.">
+    <link rel="canonical" href="https://lumu.dev/precios.html">
+    <meta property="og:title" content="Planes y Precios - Lumu">
+    <meta property="og:description" content="Compara precios de productos en México con IA. Planes desde $0/mes.">
+    <meta property="og:url" content="https://lumu.dev/precios.html">
+    <meta property="og:image" content="https://lumu.dev/images/og-cover.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Planes y Precios - Lumu">
+    <meta name="twitter:description" content="Compara precios de productos en México con IA. Planes desde $0/mes.">
+    <meta name="twitter:image" content="https://lumu.dev/images/og-cover.png">
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%2310B981'/%3E%3Cpath d='M14 32V16h4l10 10V16h6v16h-4L20 22v10z' fill='white'/%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Outfit', 'sans-serif'] }, colors: { primary: '#10B981' } } } }</script>
+    <style>
+        .glass-header { background: rgba(255, 255, 255, .85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(230, 235, 245, .8) }
+        .dark .glass-header { background: rgba(17, 24, 39, .9); border-color: rgba(255,255,255,.06) }
+        .dark body, .dark .bg-\[\#F8FAFC\] { background-color: #030712 !important; }
+        .dark .bg-white { background-color: #111827 !important; }
+        .dark .text-slate-900 { color: #f1f5f9 !important; }
+        .dark .text-slate-800 { color: #e2e8f0 !important; }
+        .dark .text-slate-700 { color: #cbd5e1 !important; }
+        .dark .text-slate-500 { color: #94a3b8 !important; }
+        .dark .text-slate-400 { color: #64748b !important; }
+        .dark .border-slate-200 { border-color: rgba(255,255,255,.08) !important; }
+        .dark .border-slate-100 { border-color: rgba(255,255,255,.06) !important; }
+        .plan-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .plan-card:hover { transform: translateY(-4px); }
+        .feature-check { flex-shrink: 0; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; opacity: 0; }
+        .animate-delay-1 { animation-delay: 0.1s; }
+        .animate-delay-2 { animation-delay: 0.2s; }
+        .animate-delay-3 { animation-delay: 0.3s; }
+    </style>
+</head>
+
+<body class="bg-[#F8FAFC] text-slate-800 font-sans min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="w-full glass-header sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="bg-primary p-1.5 rounded-lg shadow-sm">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+                <span class="font-display font-black text-xl tracking-tight text-slate-900 dark:text-white">Lumu</span>
+            </a>
+            <nav class="flex gap-4 items-center text-sm font-semibold">
+                <a href="/" class="text-slate-500 hover:text-primary transition-colors">← Volver al inicio</a>
+                <button id="btn-toggle-dark" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <!-- Hero -->
+        <section class="text-center pt-16 pb-12 px-4">
+            <div class="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-4 py-1.5 rounded-full mb-6">
+                <span>💎</span> Planes simples, sin letras chiquitas
+            </div>
+            <h1 class="text-4xl md:text-5xl font-display font-black text-slate-900 tracking-tight mb-4">
+                Planes y Precios
+            </h1>
+            <p class="text-lg text-slate-500 font-medium max-w-xl mx-auto">
+                Empieza gratis. Desbloquea más poder cuando lo necesites.
+            </p>
+        </section>
+
+        <!-- Plans Grid -->
+        <section class="max-w-5xl mx-auto px-4 pb-20">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+
+                <!-- FREE Plan -->
+                <div class="plan-card animate-fade-up animate-delay-1 bg-white dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 flex flex-col shadow-sm hover:shadow-xl transition-shadow">
+                    <div class="text-4xl mb-3">🆓</div>
+                    <h3 class="text-xl font-black text-slate-800 mb-1">Gratis</h3>
+                    <p class="text-slate-500 text-sm font-medium mb-4">Para uso personal</p>
+                    <div class="flex items-baseline gap-1 mb-6">
+                        <span class="text-5xl font-black text-slate-900">$0</span>
+                        <span class="text-slate-400 font-bold">/siempre</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-grow text-sm">
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            5 búsquedas por día
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Comparación multi-tienda
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Búsqueda por voz e imagen
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Favoritos guardados
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Tiendas cercanas a ti
+                        </li>
+                    </ul>
+                    <a href="/" class="w-full py-3.5 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-center block">
+                        Empezar Gratis
+                    </a>
+                </div>
+
+                <!-- VIP Plan -->
+                <div class="plan-card animate-fade-up animate-delay-2 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20 rounded-3xl border-2 border-emerald-400 p-8 flex flex-col shadow-lg shadow-emerald-500/10 relative">
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full shadow-md">
+                        Más Popular
+                    </div>
+                    <div class="text-4xl mb-3">⚡</div>
+                    <h3 class="text-xl font-black text-slate-800 mb-1">Personal VIP</h3>
+                    <p class="text-slate-500 text-sm font-medium mb-4">Para compradores frecuentes</p>
+                    <div class="flex items-baseline gap-1 mb-2">
+                        <span class="text-5xl font-black text-emerald-600 dark:text-emerald-400">$39</span>
+                        <span class="text-slate-400 font-bold">MXN/mes</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-6">≈ un café al mes ☕</p>
+                    <ul class="space-y-3 mb-8 flex-grow text-sm">
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <strong>500 búsquedas</strong> al mes
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Cupones y promos exclusivas
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <strong>Sin anuncios</strong>
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Historial de precios + tendencias
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Alertas de baja de precio
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Favoritos e historial ilimitado
+                        </li>
+                    </ul>
+                    <button id="btn-pricing-vip" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-colors shadow-lg shadow-emerald-500/20 active:scale-95">
+                        Suscribirme VIP
+                    </button>
+                </div>
+
+                <!-- B2B Plan -->
+                <div class="plan-card animate-fade-up animate-delay-3 bg-white dark:bg-slate-900/50 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 flex flex-col shadow-sm hover:shadow-xl transition-shadow">
+                    <div class="text-4xl mb-3">💼</div>
+                    <h3 class="text-xl font-black text-slate-800 mb-1">Distribuidor B2B</h3>
+                    <p class="text-slate-500 text-sm font-medium mb-4">Para negocios y revendedores</p>
+                    <div class="flex items-baseline gap-1 mb-2">
+                        <span class="text-5xl font-black text-slate-900">$199</span>
+                        <span class="text-slate-400 font-bold">MXN/mes</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-6">Facturación disponible</p>
+                    <ul class="space-y-3 mb-8 flex-grow text-sm">
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <strong>5,000 búsquedas</strong> al mes
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Cotizaciones masivas (CSV)
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Todo lo de VIP incluido
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            API de acceso directo
+                        </li>
+                        <li class="flex items-center gap-2 text-slate-700 font-medium">
+                            <svg class="feature-check w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Soporte prioritario
+                        </li>
+                    </ul>
+                    <button id="btn-pricing-b2b" class="w-full py-3.5 border-2 border-amber-400 text-amber-700 dark:text-amber-400 rounded-2xl font-bold hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                        Contactar Ventas
+                    </button>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="mt-20 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-display font-black text-slate-900 text-center mb-8">Preguntas Frecuentes</h2>
+                <div class="space-y-4">
+                    <details class="group bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+                        <summary class="cursor-pointer font-bold text-slate-800 flex justify-between items-center">
+                            ¿Puedo cancelar en cualquier momento?
+                            <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <p class="text-slate-500 text-sm mt-3 leading-relaxed">Sí, puedes cancelar tu suscripción en cualquier momento desde tu perfil. Sin compromisos, sin cargos ocultos. Tu plan seguirá activo hasta el final del período pagado.</p>
+                    </details>
+                    <details class="group bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+                        <summary class="cursor-pointer font-bold text-slate-800 flex justify-between items-center">
+                            ¿Qué métodos de pago aceptan?
+                            <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <p class="text-slate-500 text-sm mt-3 leading-relaxed">Aceptamos tarjetas de crédito y débito (Visa, Mastercard, AMEX) a través de Stripe. Todos los pagos son seguros y encriptados.</p>
+                    </details>
+                    <details class="group bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+                        <summary class="cursor-pointer font-bold text-slate-800 flex justify-between items-center">
+                            ¿Qué pasa si se me acaban las búsquedas?
+                            <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <p class="text-slate-500 text-sm mt-3 leading-relaxed">En el plan Gratis, el límite se reinicia cada día. En los planes de pago, el límite se reinicia cada mes. Si necesitas más, puedes mejorar tu plan en cualquier momento.</p>
+                    </details>
+                    <details class="group bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+                        <summary class="cursor-pointer font-bold text-slate-800 flex justify-between items-center">
+                            ¿Los favoritos son gratis?
+                            <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </summary>
+                        <p class="text-slate-500 text-sm mt-3 leading-relaxed">¡Sí! Guardar favoritos es gratis para todos los usuarios con cuenta. Solo necesitas iniciar sesión con Google o correo electrónico.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-8 mt-auto border-t border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-sm font-medium">
+            <div class="flex items-center gap-6">
+                <span>© 2026 Lumu AI.</span>
+                <a href="/terminos.html" class="hover:text-primary transition-colors">Términos</a>
+                <a href="/privacidad.html" class="hover:text-primary transition-colors">Privacidad</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode toggle
+        const darkBtn = document.getElementById('btn-toggle-dark');
+        if (localStorage.getItem('lumu_theme') === 'dark') document.documentElement.classList.add('dark');
+        darkBtn?.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('lumu_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // VIP button → Stripe (reuse from main app)
+        document.getElementById('btn-pricing-vip')?.addEventListener('click', () => {
+            window.location.href = '/?action=subscribe';
+        });
+        document.getElementById('btn-pricing-b2b')?.addEventListener('click', () => {
+            window.location.href = '/?action=b2b';
+        });
+    </script>
+</body>
+</html>
