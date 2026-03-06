@@ -4,7 +4,7 @@ const monitor = require('./scraperMonitor');
 const localPriceExtractor = require('./localPriceExtractor');
 
 // Timeout por defecto para Serper API
-const SERPER_TIMEOUT = 12000;
+const SERPER_TIMEOUT = 8000;
 
 exports.searchGoogleShopping = async (query, radius, lat, lng, intentType) => {
     const apiKey = process.env.SERPER_API_KEY;

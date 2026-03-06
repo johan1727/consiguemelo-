@@ -138,6 +138,10 @@ exports.searchProduct = async (req, res) => {
             }
         }
 
+        // MASTER TIMEOUT: Wrap entire search pipeline to prevent Vercel from killing the function
+        const MASTER_TIMEOUT_MS = 45000; // 45s (Vercel limit is 60s, leave buffer)
+        const searchStartTime = Date.now();
+
         let llmAnalysis;
         if (skipLLM) {
             console.log(`[Direct Search] Saltando LLM para: ${query}`);
@@ -186,29 +190,40 @@ exports.searchProduct = async (req, res) => {
         const shoppingResults = await shoppingService.searchGoogleShopping(searchQuery, radius, lat, lng, llmAnalysis.intent_type);
         console.log(`[Search Pipeline] Resultados de shoppingService: ${shoppingResults.length}`);
 
-        // NUEVO: Multi-Query Background Scraper para Variantes (No gasta créditos Serper)
-        // Strip Google-only negative keywords for direct scrapers
+        // Check remaining time before alt queries (skip if running low)
+        const elapsedMs = Date.now() - searchStartTime;
+        const remainingMs = MASTER_TIMEOUT_MS - elapsedMs;
+        console.log(`[Search Pipeline] Elapsed: ${elapsedMs}ms, Remaining: ${remainingMs}ms`);
+
+        // NUEVO: Multi-Query Background Scraper para Variantes (skip if < 15s remaining)
         const cleanSearchQuery = searchQuery.replace(/\s+-\w+/g, '').trim();
         const altQueries = llmAnalysis.alternativeQueries || [];
-        if (altQueries.length > 0) {
+        if (altQueries.length > 0 && remainingMs > 15000) {
             console.log(`Ejecutando Multi-Query alternativas: ${altQueries.join(', ')}`);
             const directScraper = require('../services/directScraper');
             const altPromises = [];
-            for (const altQ of altQueries.slice(0, 2)) {
-                // Strip site: operators — they don't work on direct scraper searches
+            for (const altQ of altQueries.slice(0, 1)) { // Reduced from 2 to 1 alt query
                 const cleanAltQ = altQ.replace(/\bsite:\S+/gi, '').trim();
                 if (!cleanAltQ) continue;
                 altPromises.push(directScraper.scrapeMercadoLibreDirect(cleanAltQ));
                 altPromises.push(directScraper.scrapeAmazonDirect(cleanAltQ));
-                altPromises.push(directScraper.scrapeLiverpoolMX(cleanAltQ));
-                altPromises.push(directScraper.scrapeCoppelMX(cleanAltQ));
             }
-            const altResultsRaw = await Promise.allSettled(altPromises);
-            altResultsRaw.forEach(altResult => {
-                if (altResult.status === 'fulfilled' && altResult.value) {
-                    shoppingResults.push(...altResult.value);
-                }
-            });
+            // Race alt queries against remaining time minus buffer
+            const altTimeout = Math.min(remainingMs - 10000, 10000);
+            const altTimeoutPromise = new Promise(resolve => setTimeout(() => resolve([]), altTimeout));
+            const altResultsRaw = await Promise.race([
+                Promise.allSettled(altPromises),
+                altTimeoutPromise
+            ]);
+            if (Array.isArray(altResultsRaw)) {
+                altResultsRaw.forEach(altResult => {
+                    if (altResult.status === 'fulfilled' && altResult.value) {
+                        shoppingResults.push(...altResult.value);
+                    }
+                });
+            }
+        } else if (altQueries.length > 0) {
+            console.log(`[Search Pipeline] Skipping alt queries — only ${remainingMs}ms remaining`);
         }
 
         console.log(`[Search Pipeline] Total resultados (con alt queries): ${shoppingResults.length}`);
