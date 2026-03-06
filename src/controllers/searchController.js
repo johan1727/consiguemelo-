@@ -389,7 +389,7 @@ exports.searchProduct = async (req, res) => {
         if (userId && supabase) {
             supabase.from('searches').insert({
                 user_id: userId,
-                query: finalQuery || searchQuery,
+                query: searchQuery,
                 created_at: new Date().toISOString()
             }).then(() => { }).catch(e => console.error('[Search Logging] Error:', e.message));
         }

@@ -169,7 +169,8 @@ ${extraContext}`;
         }
     };
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
     let retries = 0;
     const maxRetries = 2;
 
@@ -179,7 +180,7 @@ ${extraContext}`;
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
                 body: JSON.stringify(payload)
-            }, 20000);
+            }, 15000);
 
             if (response.status === 429 && retries < maxRetries) {
                 retries++;
@@ -190,11 +191,23 @@ ${extraContext}`;
             }
 
             if (!response.ok) {
-                throw new Error(`Fallo en la API de Gemini: HTTP ${response.status}`);
+                const errorBody = await response.text().catch(() => '');
+                throw new Error(`Fallo en la API de Gemini: HTTP ${response.status} - ${errorBody.slice(0, 200)}`);
             }
 
             const data = await response.json();
+
+            // Defensive: check candidates exist and have content
+            if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+                console.warn('[LLM] Gemini returned empty/blocked candidates:', JSON.stringify(data).slice(0, 500));
+                throw new Error('Gemini returned no candidates (possibly blocked by safety filter)');
+            }
+
             const textResult = data.candidates[0].content.parts[0].text;
+            if (!textResult) {
+                throw new Error('Gemini returned empty text in candidates');
+            }
+
             const parsed = JSON.parse(textResult);
 
             // SECURITY FIX #8: Validate LLM output with Zod
