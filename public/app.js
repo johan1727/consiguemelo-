@@ -30,7 +30,7 @@ let searchForm, searchInput, searchButton, errorMessage;
 let chatContainer, resultsWrapper, resultsGrid, resultsContainer;
 let adModal, adCountdownText, btnSkipAd;
 let b2bModal, closeB2bModal, b2bBackdrop, navB2b, btnProcessB2b, btnExportB2b;
-let welcomeModal, btnOnboardingNext, btnOnboardingSkip, onboardingContent, stepDots;
+let welcomeModal, btnOnboardingNext, btnOnboardingSkip, onboardingContent, stepDots; // Keep declarations so strict mode won't break on missing vars, though we won't use them.
 let iconMoon, iconSun, html;
 let mobileMenuDrawer, mobileMenuBackdrop, mobileMenuPanel, btnMobileMenu, btnCloseMobileMenu, mobileAuthContainer;
 let adsLoader, adsManager, adsDone = false, adContainer, adDisplayContainer;
@@ -45,8 +45,8 @@ let chatHistory = [];
 let adInterval = null;
 let lastB2bData = null;
 let currentPhoneAttempt = '';
-let currentStep = 1; // FIX: Variable faltante para onboarding
-const totalSteps = 3; // FIX: Variable faltante para onboarding
+let currentStep = 1;
+const totalSteps = 3;
 
 // --- Conversion Analytics ---
 const _detectDevice = () => /Mobi|Android/i.test(navigator.userAgent) ? (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : 'mobile') : 'desktop';
@@ -361,6 +361,11 @@ async function initApp() {
         // --- NEW DOM ELEMENTS & LISTENERS ---
         const btnDarkMode = document.getElementById('btn-dark-mode');
         iconMoon = document.getElementById('icon-moon');
+        const categoryIconBar = document.getElementById('category-icon-bar');
+        const flashDealsSection = document.getElementById('flash-deals-section');
+        const tendenciasSection = document.getElementById('tendencias-section');
+        const productShowcase = document.getElementById('product-showcase');
+        const extraSections = document.getElementById('extra-sections');
         iconSun = document.getElementById('icon-sun');
         locRadiusInput = document.getElementById('loc-radius');
         userLatInput = document.getElementById('user-lat');
@@ -543,26 +548,7 @@ async function initApp() {
         if (btnLoginHeader) btnLoginHeader.addEventListener('click', openModal);
         if (navFavoritos) navFavoritos.addEventListener('click', openFavorites);
 
-        welcomeModal = document.getElementById('welcome-modal');
-        btnOnboardingNext = document.getElementById('btn-onboarding-next');
-        btnOnboardingSkip = document.getElementById('btn-onboarding-skip');
-        onboardingContent = document.getElementById('onboarding-content');
-        stepDots = document.querySelectorAll('.step-dot');
-
-        if (btnOnboardingNext) {
-            btnOnboardingNext.addEventListener('click', () => {
-                if (currentStep < totalSteps) {
-                    currentStep++;
-                    updateOnboarding();
-                } else {
-                    closeOnboarding(false); // Launch interactive tutorial
-                }
-            });
-        }
-        if (btnOnboardingSkip) {
-            btnOnboardingSkip.addEventListener('click', () => closeOnboarding(true));
-        }
-
+        // DOM hooks for onboarding removed
         if (navB2b) {
             navB2b.addEventListener('click', () => {
                 if (b2bModal) {
@@ -943,7 +929,7 @@ async function initApp() {
                 // Usuario deslogueado
                 authContainer.innerHTML = `
                 <button id="btn-login" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-2 font-bold shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     Ingresar
                 </button>
             `;
@@ -1152,13 +1138,8 @@ async function initApp() {
             console.log('Binding searchForm submit listener...');
             searchForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-
-                const query = searchInput.value.trim();
+                const query = searchInput?.value?.trim();
                 if (!query && !selectedImageBase64) return;
-
-                const radius = locRadiusInput?.value || 'global';
-                const lat = userLatInput?.value || null;
-                const lng = userLngInput?.value || null;
 
                 // Freemium logic: Check local storage for free limits (Daily Reset)
                 const maxFreeSearches = 5;
@@ -1171,82 +1152,8 @@ async function initApp() {
                     localStorage.setItem('lumu_searches_data', JSON.stringify(searchData));
                 }
 
-                let searchCount = searchData.count;
-
-                // Revisar estado VIP silenciosamente
-                let isVIP = false;
-                if (window.supabaseClient && window.currentUser) {
-                    try {
-                        const { data } = await window.supabaseClient.from('profiles').select('is_premium').eq('id', window.currentUser.id).single();
-                        if (data && data.is_premium) isVIP = true;
-                    } catch (err) { }
-                }
-
-                // Very basic protection for now. It blocks if more than 3 searches and NOT VIP.
-                if (searchCount >= maxFreeSearches && !isVIP) {
-                    let paywallAction = '';
-
-                    if (currentUser) {
-                        // If logged in, inject their unique ID into the Stripe session
-                        const personalizedPayLink = stripePaymentLink ? `${stripePaymentLink}?client_reference_id=${encodeURIComponent(currentUser.id)}` : '#';
-                        paywallAction = `
-                        <a href="${personalizedPayLink}" target="_blank" class="bg-[#635BFF] hover:bg-[#4B44DB] text-white font-bold py-3.5 px-8 rounded-xl shadow-[0_8px_20px_rgba(99,91,255,0.3)] transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] flex items-center justify-center gap-3">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                            Suscribirme por $39 MXN/mes
-                        </a>
-                        <p class="text-[10px] text-slate-400 mt-5 uppercase tracking-widest font-bold flex items-center justify-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 border border-slate-300 rounded-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            Pago seguro procesado por Stripe
-                        </p>
-                    `;
-                    } else {
-                        // If not logged in, ask them to log in first
-                        paywallAction = `
-                        <button id="btn-paywall-login" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-8 rounded-xl shadow-[0_8px_20px_rgba(15,23,42,0.3)] transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] flex items-center justify-center gap-3 w-full">
-                            Inicia sesión para continuar
-                        </button>
-                        <p class="text-xs text-slate-400 mt-4 select-none">Necesitas una cuenta para vincular tu suscripción VIP.</p>
-                    `;
-                    }
-
-                    errorMessage.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-8 bg-white/80 backdrop-blur-md rounded-[2rem] border border-rose-100 shadow-xl w-full text-center mt-4">
-                        <div class="bg-rose-100/50 p-4 rounded-full mb-4">
-                            <span class="text-4xl block drop-shadow-sm">🚀</span>
-                        </div>
-                        <h3 class="text-2xl font-black text-slate-800 mb-2 tracking-tight">Límite Gratuito Alcanzado</h3>
-                        <p class="text-slate-500 mb-6 text-[15px] font-medium leading-relaxed max-w-sm">Has usado tus 5 búsquedas gratuitas del día. Desbloquea búsquedas ilimitadas o mira un anuncio corto de recompensa.</p>
-                        
-                        <button onclick="window.watchRewardedAdForSearches()" class="mb-5 bg-[#FF9900] hover:bg-orange-500 text-slate-900 font-black py-4 px-6 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full max-w-xs mx-auto">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Ver Anuncio (+3 Búsquedas)
-                        </button>
-
-                        <div class="w-full max-w-xs mx-auto mb-4 relative flex items-center justify-center">
-                            <div class="border-t border-slate-200 w-full absolute"></div>
-                            <span class="bg-[#f0f9ff]/90 px-3 text-xs text-slate-400 font-bold relative z-10 tracking-widest rounded-full">O HAZTE VIP</span>
-                        </div>
-
-                        <div class="w-full max-w-xs mx-auto">
-                            ${paywallAction}
-                        </div>
-                    </div>
-                `;
-
-                    if (!currentUser) {
-                        setTimeout(() => {
-                            const btnPaywallLogin = document.getElementById('btn-paywall-login');
-                            if (btnPaywallLogin) {
-                                btnPaywallLogin.addEventListener('click', () => {
-                                    openModal();
-                                });
-                            }
-                        }, 100);
-                    }
-
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
+                // Let the query through. We will only increment count on RESULTS,
+                // and we will rely on the backend for actual rate limiting logic.
                 errorMessage.classList.add('hidden');
                 executeSearch(query);
             });
@@ -1282,7 +1189,7 @@ async function initApp() {
                             finalQuery = visionData.searchQuery;
                             addChatBubble('ai', `Identifiqué: **${visionData.productName}**. Buscando las mejores ofertas... ⚡`, false);
                             // Clear image state
-                            selectedImageBase64 = null;
+                            selectedImageBase66 = null;
                             imageUpload.value = '';
                             if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
                         }
@@ -1297,6 +1204,14 @@ async function initApp() {
                 }
 
                 resultsWrapper.classList.remove('hidden');
+
+                // Ocultar elementos de la landing page durante la búsqueda
+                if (categoryIconBar) categoryIconBar.classList.add('hidden');
+                if (flashDealsSection) flashDealsSection.classList.add('hidden');
+                if (tendenciasSection) tendenciasSection.classList.add('hidden');
+                if (productShowcase) productShowcase.classList.add('hidden');
+                if (extraSections) extraSections.classList.add('hidden');
+
                 renderSkeletons(5);
                 if (!skipLLM) resultsWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -1389,7 +1304,9 @@ async function initApp() {
                     if (data.advertencia_uso) {
                         setTimeout(() => addChatBubble('ai', data.advertencia_uso, [], false), 500);
                     }
-                    resultsWrapper.classList.add('hidden');
+                    resultsWrapper.classList.remove('hidden'); // Fix: chat lives inside results so this must be visible
+                    resultsGrid.innerHTML = '';
+                    document.getElementById('results-title').innerHTML = `Conversación con <span class="text-emerald-500">Lumu AI</span>`;
                     searchInput.value = '';
                     // Reset height
                     searchInput.style.height = '56px';
@@ -1512,11 +1429,11 @@ async function initApp() {
             indicator.className = 'flex items-start w-full items-start fade-in';
             indicator.innerHTML = `
                 <div class="flex-shrink-0 mr-3 mt-1">
-                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
+                    <div class="bg-emerald-500 shadow-md shadow-emerald-500/20 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
                         <svg class="w-5 h-5 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
                 </div>
-                <div class="bg-white/95 dark:bg-slate-800/95 rounded-[1.5rem] rounded-tl-sm px-5 py-4 shadow-md border border-slate-100 dark:border-slate-700/60 backdrop-blur-sm">
+                <div class="bg-white/95 dark:bg-slate-800/95 rounded-[1.5rem] rounded-tl-sm px-5 py-4 shadow-sm border border-slate-100 dark:border-slate-700/60 backdrop-blur-sm">
                     <div class="flex items-center gap-1.5">
                         <span class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
                         <span class="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
@@ -1557,12 +1474,12 @@ async function initApp() {
 
             // Tema Emerald en chat — mejorado con gradientes y sombras premium
             const innerClass = isUser
-                ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-[1.5rem] rounded-tr-sm px-5 py-3.5 shadow-lg shadow-emerald-500/25 max-w-[85%] sm:max-w-[75%] backdrop-blur-sm'
-                : 'bg-white/95 dark:bg-slate-800/95 text-slate-800 dark:text-slate-100 rounded-[1.5rem] rounded-tl-sm px-5 py-3.5 shadow-md shadow-slate-200/60 dark:shadow-slate-900/40 max-w-[85%] sm:max-w-[75%] border border-slate-100 dark:border-slate-700/60 relative group backdrop-blur-sm';
+                ? 'bg-emerald-50 text-emerald-950 border border-emerald-100 rounded-[1.5rem] rounded-tr-sm px-5 py-3.5 shadow-sm max-w-[85%] sm:max-w-[75%]'
+                : 'bg-white/95 dark:bg-slate-800/95 text-slate-800 dark:text-slate-100 rounded-[1.5rem] rounded-tl-sm px-5 py-3.5 shadow-sm border border-slate-100 dark:border-slate-700/60 relative group backdrop-blur-sm max-w-[85%] sm:max-w-[75%]';
 
             const iconHtml = isUser ? '' : `
                 <div class="flex-shrink-0 mr-3 mt-1 relative">
-                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
+                    <div class="bg-emerald-500 shadow-md shadow-emerald-500/20 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
                         <svg class="w-5 h-5 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
                     <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
@@ -1570,7 +1487,7 @@ async function initApp() {
 
             // Markdown-lite: convierte **negrita** y *cursiva*
             const renderedText = text
-                .replace(/\*\*(.+?)\*\*/g, '<strong class="font-extrabold">$1</strong>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
                 .replace(/\*(.+?)\*/g, '<em>$1</em>');
 
             let feedbackHtml = '';
@@ -1733,11 +1650,11 @@ async function initApp() {
                 }
 
                 return `
-                <div class="chat-product-item flex items-center gap-3 p-2.5 rounded-xl hover:bg-emerald-50/50 cursor-pointer group/item transition-all duration-200 ${isCheapest ? 'bg-emerald-50/60 ring-1 ring-emerald-200' : 'border border-slate-100 hover:border-emerald-200'}"
+                <div class="chat-product-item flex items-center gap-3 p-3 rounded-xl hover:bg-emerald-50/80 cursor-pointer group/item transition-all duration-200 ${isCheapest ? 'bg-emerald-50/50 border border-emerald-200/50' : 'border border-slate-100 hover:border-emerald-200'}"
                      data-target-url="${targetUrl}" style="animation: slideInUp 0.3s ease-out ${idx * 80}ms both">
                     ${isCheapest ? '<div class="absolute -top-1.5 -left-1 bg-emerald-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md shadow-sm z-10">💰 MEJOR PRECIO</div>' : ''}
                     <div class="relative flex-shrink-0">
-                        <img src="${imgUrl}" alt="" class="w-14 h-14 object-contain rounded-xl bg-white shadow-sm"
+                        <img src="${imgUrl}" alt="" class="w-14 h-14 object-contain rounded-xl bg-white shadow-sm mix-blend-multiply"
                              onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2780%27 height=%2780%27 viewBox=%270 0 80 80%27%3E%3Crect width=%2780%27 height=%2780%27 fill=%27%23f1f5f9%27 rx=%2712%27/%3E%3Ctext x=%2740%27 y=%2748%27 text-anchor=%27middle%27 font-size=%2724%27 fill=%2794a3b8%27%3E📦%3C/text%3E%3C/svg%3E'">
                         ${isLocal ? '<span class="absolute -bottom-1 -right-1 text-[10px]">📍</span>' : ''}
                     </div>
@@ -1746,11 +1663,11 @@ async function initApp() {
                         <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                             <span class="text-base font-black ${precioNumerico > 0 ? 'text-slate-900' : 'text-amber-600'}">${formattedPrice}</span>
                             ${trendBadge}
-                            <span class="text-[9px] font-bold ${store.color} px-1.5 py-0.5 rounded-md border">${store.label}</span>
+                            <span class="text-[9px] font-bold ${store.color} px-1.5 py-0.5 rounded-md border text-center">${store.label}</span>
                         </div>
-                        ${product.cupon ? `<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-0.5 inline-block">🎟️ ${sanitize(product.cupon)}</span>` : ''}
+                        ${product.cupon ? `<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded mt-0.5 inline-block border border-amber-200">🎟️ ${sanitize(product.cupon)}</span>` : ''}
                     </div>
-                    <button class="chat-product-btn flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-[11px] font-bold px-3 py-2 rounded-xl shadow-sm shadow-emerald-500/20 transition-all duration-150 whitespace-nowrap"
+                    <button class="chat-product-btn flex-shrink-0 bg-transparent text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 active:scale-95 text-[11px] font-bold px-3 py-2 rounded-xl border border-emerald-200 transition-all duration-150 whitespace-nowrap"
                             data-target-url="${targetUrl}">
                         Ver →
                     </button>
@@ -1759,11 +1676,11 @@ async function initApp() {
 
             wrapper.innerHTML = `
                 <div class="flex-shrink-0 mr-3 mt-1">
-                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
+                    <div class="bg-emerald-500 shadow-md shadow-emerald-500/20 rounded-2xl h-10 w-10 flex items-center justify-center text-white ring-2 ring-white dark:ring-slate-800">
                         <svg class="w-5 h-5 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     </div>
                 </div>
-                <div class="bg-white/95 dark:bg-slate-800/95 rounded-[1.5rem] rounded-tl-sm shadow-md border border-slate-100 dark:border-slate-700/60 backdrop-blur-sm max-w-[92%] sm:max-w-[85%] overflow-hidden">
+                <div class="bg-white/95 dark:bg-slate-800/95 rounded-[1.5rem] rounded-tl-sm shadow-sm border border-slate-100 dark:border-slate-700/60 backdrop-blur-sm max-w-[92%] sm:max-w-[85%] overflow-hidden">
                     <div class="px-4 pt-3.5 pb-2 flex items-center justify-between border-b border-slate-100 dark:border-slate-700/40">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-black text-emerald-600 uppercase tracking-wider">Top ${products.length > 5 ? 5 : products.length} mejores precios</span>
@@ -2196,56 +2113,63 @@ async function initApp() {
                 card.innerHTML = `
                 ${priceDropBadge}
                 <!-- Image Section -->
-                <div class="w-full md:w-56 h-48 md:h-44 flex-shrink-0 bg-slate-50/50 rounded-2xl flex items-center justify-center p-4 relative overflow-hidden">
-                    <img src="${imgUrl}" alt="Producto" class="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%23f1f5f9%27/%3E%3Ctext x=%27150%27 y=%27160%27 text-anchor=%27middle%27 font-size=%2740%27 fill=%27%2394a3b8%27%3E📦%3C/text%3E%3C/svg%3E'">
-                    <button class="btn-favorite absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur rounded-full ${heartColor} hover:text-red-500 hover:bg-white shadow-sm transition-all z-20 hover:scale-110">
+                <div class="w-full bg-slate-50 border-b border-slate-100 flex-shrink-0 h-44 md:h-52 flex items-center justify-center p-4 relative overflow-hidden group-hover:bg-emerald-50/30 transition-colors">
+                    <img src="${imgUrl}" alt="Producto" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Crect width=%27300%27 height=%27300%27 fill=%27%23f1f5f9%27/%3E%3Ctext x=%27150%27 y=%27160%27 text-anchor=%27middle%27 font-size=%2740%27 fill=%27%2394a3b8%27%3E📦%3C/text%3E%3C/svg%3E'">
+                    <button class="btn-favorite absolute top-2 right-2 p-2 bg-white/80 backdrop-blur rounded-full ${heartColor} hover:text-red-500 hover:bg-white shadow-sm transition-all z-20 hover:scale-110">
                         <svg class="w-5 h-5 drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
-                    <button class="btn-compare absolute top-2 left-2 p-1.5 bg-white/90 backdrop-blur rounded-full ${_compareProducts.some(cp => (cp.urlMonetizada || cp.urlOriginal) === (product.urlMonetizada || product.urlOriginal)) ? 'text-emerald-600 bg-emerald-100' : 'text-slate-400'} hover:text-emerald-600 hover:bg-white shadow-sm transition-all z-20 hover:scale-110" title="Comparar" data-compare-url="${product.urlMonetizada || product.urlOriginal}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    </button>
+                    ${!isLocal ? `
+                    <button class="btn-compare absolute top-2 left-2 p-2 bg-white/80 backdrop-blur rounded-full ${_compareProducts.some(cp => (cp.urlMonetizada || cp.urlOriginal) === (product.urlMonetizada || product.urlOriginal)) ? 'text-emerald-600 bg-emerald-100' : 'text-slate-400'} hover:text-emerald-600 hover:bg-white shadow-sm transition-all z-20 hover:scale-110" title="Comparar" data-compare-url="${product.urlMonetizada || product.urlOriginal}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </button>` : ''}
                 </div>
 
                 <!-- Info Section -->
-                <div class="flex-grow flex flex-col pt-1 pb-1">
-                    <div class="flex items-start justify-between mb-1">
-                        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">Vendido por ${sanitize(product.tienda)}</span>
-                        ${product.isLocalStore ? '<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">📍 LOCAL</span>' : ''}
+                <div class="flex-grow flex flex-col p-4 w-full">
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-full">${sanitize(product.tienda)}</span>
+                        ${product.isLocalStore ? '<span class="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full ring-1 ring-emerald-200">📍 LOCAL</span>' : ''}
                     </div>
                     
-                    <h3 class="text-sm md:text-base font-bold text-slate-800 leading-snug line-clamp-2 mb-3 group-hover:text-emerald-700 transition-colors" title="${sanitize(product.titulo)}">
+                    <h3 class="text-sm md:text-sm font-bold text-slate-800 leading-snug line-clamp-2 mb-3 group-hover:text-emerald-700 transition-colors" title="${sanitize(product.titulo)}">
                         ${sanitize(product.titulo)}
                     </h3>
                     ${localDetailHtml}
 
-                    <div class="mt-auto flex flex-col">
+                    <div class="mt-auto flex flex-col w-full">
                         <div class="flex items-baseline gap-0.5 mb-1">
                             ${priceDisplay}
                         </div>
                         ${trendHtml}
                         
-                        <div class="flex items-center gap-2 mt-3 flex-wrap">
-                            <button class="btn-open-offer bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold py-2.5 px-6 rounded-xl shadow-[0_4px_12px_rgba(16,185,129,0.2)] transition-all transform active:scale-95 flex items-center justify-center gap-2"
+                        <div class="flex flex-col gap-2 mt-4 w-full">
+                            <button class="btn-open-offer w-full bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold py-2.5 rounded-xl shadow-[0_4px_12px_rgba(16,185,129,0.2)] hover:shadow-[0_6px_16px_rgba(16,185,129,0.3)] transition-all transform active:scale-95 flex items-center justify-center gap-2"
                                     data-target-url="${encodeURIComponent(product.urlMonetizada || product.urlOriginal)}">
                                 ${isLocal ? ((product.urlOriginal && product.urlOriginal.includes('maps')) ? 'Ver en Maps' : 'Ir a Tienda') : 'Ver Oferta'}
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </button>
+                            
+                            <!-- Acciones secundarias en botones Outline abajo -->
                             ${(!isLocal && precioNumerico > 0) ? `
-                            <button class="btn-quick-alert p-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-xl border border-amber-200 transition-all active:scale-95" title="Alerta de precio"
-                                    data-alert-name="${sanitize(product.titulo)}"
-                                    data-alert-price="${precioNumerico}"
-                                    data-alert-url="${product.urlMonetizada || product.urlOriginal}"
-                                    data-alert-store="${sanitize(product.tienda)}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                            </button>
-                            <button class="btn-margin-calc p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl border border-blue-200 transition-all active:scale-95" title="Calculadora de margen dropshipping"
-                                    data-cost-price="${precioNumerico}"
-                                    data-product-name="${sanitize(product.titulo)}">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                            </button>` : ''}
+                            <div class="flex gap-2 w-full mt-1">
+                                <button class="btn-quick-alert flex-1 py-1.5 flex justify-center items-center gap-1.5 bg-white text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl border border-slate-200 hover:border-amber-200 transition-all text-xs font-bold" title="Alerta de precio"
+                                        data-alert-name="${sanitize(product.titulo)}"
+                                        data-alert-price="${precioNumerico}"
+                                        data-alert-url="${product.urlMonetizada || product.urlOriginal}"
+                                        data-alert-store="${sanitize(product.tienda)}">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    Avisarme
+                                </button>
+                                <button class="btn-margin-calc flex-1 py-1.5 flex justify-center items-center gap-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl border border-slate-200 hover:border-blue-200 transition-all text-xs font-bold" title="Calculadora Dropshipping"
+                                        data-cost-price="${precioNumerico}"
+                                        data-product-name="${sanitize(product.titulo)}">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    Margen
+                                </button>
+                            </div>` : ''}
                             
                             ${product.cupon ? `
-                                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg animate-pulse">
+                                <div class="flex items-center justify-center gap-1.5 px-3 py-2 mt-1 bg-amber-50 border border-amber-200/50 rounded-xl w-full">
                                     <span class="text-[10px] font-black text-amber-600 uppercase tracking-tighter">Cupón:</span>
                                     <span class="text-xs font-black text-slate-800 font-mono">${sanitize(product.cupon)}</span>
                                 </div>
@@ -2407,7 +2331,6 @@ async function initApp() {
             });
         }
 
-        // Duplicate Onboarding logic removed here.
         // --- Feedback handled by initFeedback() called at line ~753 ---
         // (Duplicate feedback modal/form code was removed to prevent double submission)
 
@@ -2427,18 +2350,11 @@ async function initApp() {
             });
         });
 
-        // --- Onboarding Check ---
-        if (welcomeModal && !localStorage.getItem('lumu_onboarding_done')) {
-            setTimeout(() => {
-                welcomeModal.classList.remove('invisible', 'opacity-0');
-                const panel = welcomeModal.querySelector('.glass-panel');
-                if (panel) {
-                    panel.classList.remove('scale-90', 'translate-y-8');
-                    panel.classList.add('scale-100', 'translate-y-0');
-                }
-            }, 1500);
+        // Lógica unificada para el tutorial interactivo:
+        // Revisamos explícitamente la bandera del interactivo.
+        if (!localStorage.getItem('lumu_tutorial_done')) {
+            setTimeout(() => startInteractiveTutorial(), 1000);
         }
-
         // --- Offline Detection Banner ---
         function updateOnlineStatus() {
             let offlineBanner = document.getElementById('offline-banner');
@@ -2466,7 +2382,8 @@ async function initApp() {
         errDiv.innerText = 'CRITICAL ERROR: ' + err.message + '\\n' + err.stack;
         document.body.appendChild(errDiv);
     }
-};
+}; // End initApp
+
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
@@ -3376,63 +3293,14 @@ function exportB2bToCSV() {
 // ONBOARDING
 // ============================================
 
-const onboardingSteps = [
-    {
-        icon: '🔍',
-        title: 'Escribe lo que buscas',
-        text: 'Dile a nuestra IA exactamente qué necesitas. Desde "unos tenis para correr" hasta "un regalo para mi mamá".'
-    },
-    {
-        icon: '⚡',
-        title: 'Comparamos por ti',
-        text: 'Buscamos en tiempo real en las mejores tiendas (Mercado Libre, Amazon y más) para encontrarte el precio más bajo.'
-    },
-    {
-        icon: '♡',
-        title: 'Guarda tus favoritos',
-        text: 'Haz clic en el corazón para guardar productos. Te avisaremos si bajan de precio ¡automáticamente!'
-    }
-];
-
-// Variables currentStep y totalSteps ya están declaradas al inicio del archivo.
-
-function updateOnboarding() {
-    const step = onboardingSteps[currentStep - 1];
-    if (onboardingContent) {
-        onboardingContent.innerHTML = `
-            <div class="onboarding-step fade-in">
-                <div class="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-4xl shadow-lg shadow-emerald-500/10">${step.icon}</div>
-                <h3 class="text-3xl font-display font-black text-slate-900 mb-4 tracking-tight">${step.title}</h3>
-                <p class="text-slate-600 font-medium leading-relaxed mb-8">${step.text}</p>
-            </div>
-        `;
-    }
-
-    stepDots?.forEach((dot, i) => {
-        dot.classList.toggle('bg-emerald-500', i === currentStep - 1);
-        dot.classList.toggle('bg-slate-200', i !== currentStep - 1);
-    });
-
-    if (btnOnboardingNext) {
-        btnOnboardingNext.innerText = currentStep === totalSteps ? '¡Ver tutorial interactivo!' : 'Siguiente';
-    }
-};
-
+// Old onboarding variables and steps. Kept minimal for compatibility if anything calls updateOnboarding
+const onboardingSteps = [];
+function updateOnboarding() { }
 function closeOnboarding(skipTutorial) {
-    if (!welcomeModal) return;
-    welcomeModal.classList.add('invisible', 'opacity-0');
-    const panel = welcomeModal.querySelector('.glass-panel');
-    if (panel) {
-        panel.classList.add('scale-90', 'translate-y-8');
-        panel.classList.remove('scale-100', 'translate-y-0');
-    }
-    localStorage.setItem('lumu_onboarding_done', 'true');
-
-    // Launch interactive tutorial after onboarding ends (unless user clicked "skip")
     if (!skipTutorial && !localStorage.getItem('lumu_tutorial_done')) {
         setTimeout(() => startInteractiveTutorial(), 600);
     }
-};
+}
 
 function toggleMobileMenu(open) {
     if (!mobileMenuDrawer || !mobileMenuBackdrop || !mobileMenuPanel) return;

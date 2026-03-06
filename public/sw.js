@@ -1,5 +1,5 @@
 // Service Worker — Lumu PWA
-const CACHE_VERSION = '2026-03-03a';
+const CACHE_VERSION = '2026-03-06a';
 const CACHE_NAME = `lumu-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
     '/',
@@ -41,11 +41,13 @@ self.addEventListener('fetch', (event) => {
     // Skip non-GET requests
     if (request.method !== 'GET') return;
 
-    // Skip API calls, analytics, and external resources (let them go to network)
+    // Skip API calls, analytics, fonts, and external resources (let them go to network)
     if (url.pathname.startsWith('/api/') ||
         url.hostname.includes('googlesyndication') ||
         url.hostname.includes('googleads') ||
         url.hostname.includes('google-analytics') ||
+        url.hostname.includes('googleapis.com') ||
+        url.hostname.includes('gstatic.com') ||
         url.hostname.includes('supabase')) {
         return;
     }

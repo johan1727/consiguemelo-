@@ -766,9 +766,17 @@
 <body
     class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col relative overflow-x-hidden selection:bg-emerald-200 selection:text-emerald-900 safe-bottom">
 
+    <!-- Ambient Background -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none fade-in">
+        <div class="absolute -top-[20%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-emerald-200/20 blur-[100px]">
+        </div>
+        <div class="absolute top-[10%] -right-[10%] w-[40vw] h-[40vw] rounded-full bg-teal-200/20 blur-[100px]"></div>
+    </div>
+
     <!-- Header Premium Full-Width -->
-    <header class="w-full glass-header sticky top-0 z-50">
-        <div class="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header
+        class="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-50 transition-all shadow-sm">
+        <div class="w-full px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between relative z-10">
             <div class="flex items-center gap-2">
                 <a href="/" class="flex items-center gap-3 group" aria-label="Lumu HOME">
                     <!-- Logo SVG inline: 100% transparente en cualquier fondo -->
@@ -836,9 +844,9 @@
                     </div>
                 </div>
                 <button id="nav-b2b"
-                    class="bg-amber-500 hover:bg-amber-600 text-white transition-all transform hover:scale-105 flex items-center gap-1.5 font-bold px-4 py-2 rounded-full shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    class="bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white transition-all transform hover:scale-105 flex items-center gap-1.5 font-bold px-4 py-2.5 rounded-full shadow-md shadow-emerald-900/10 border border-emerald-500/30">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                             d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                         </path>
                     </svg>
@@ -933,25 +941,26 @@
         </button>
 
         <!-- Hero / Búsqueda -->
-        <div class="w-full max-w-3xl mb-12 text-center mt-4">
+        <div class="w-full max-w-3xl mb-12 text-center mt-6">
             <h2
-                class="text-4xl sm:text-5xl md:text-6xl font-display font-black mb-5 tracking-tight text-slate-900 leading-[1.1]">
+                class="text-4xl sm:text-5xl md:text-6xl font-display font-black mb-6 tracking-tight text-slate-900 leading-[1.15]">
                 El precio perfecto,<br class="hidden sm:block">
-                <span class="hero-gradient">en un instante.</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400">en un
+                    instante.</span>
             </h2>
             <p
-                class="text-base sm:text-lg md:text-xl text-slate-500 mb-10 max-w-xl mx-auto font-medium leading-relaxed">
+                class="text-base sm:text-lg md:text-xl text-slate-600 mb-10 max-w-xl mx-auto font-medium leading-relaxed drop-shadow-sm">
                 Comparamos precios en Amazon, Mercado Libre y tiendas locales con IA.</p>
 
-            <form id="search-form" class="relative fade-in max-w-2xl mx-auto w-full mb-10">
+            <form id="search-form" class="relative fade-in max-w-2xl mx-auto w-full mb-8">
                 <div
-                    class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none focus-within:ring-2 focus-within:ring-emerald-500/50 focus-within:border-emerald-500 transition-all duration-300 p-1.5 flex flex-col relative z-20">
+                    class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-[0_8px_30px_rgb(16,185,129,0.06)] dark:shadow-none focus-within:ring-[3px] focus-within:ring-emerald-500/30 focus-within:border-emerald-500 transition-all duration-300 p-2 flex flex-col relative z-20">
                     <textarea id="search-input" rows="1"
-                        class="block w-full min-h-[56px] max-h-32 py-3 px-3 text-base md:text-lg bg-transparent border-0 focus:ring-0 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white font-medium resize-none custom-scrollbar"
+                        class="block w-full min-h-[60px] max-h-32 py-4 px-4 text-base md:text-lg bg-transparent border-0 focus:ring-0 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white font-medium resize-none custom-scrollbar"
                         placeholder="Dime qué estás buscando... Ej: iPhone 15 Pro Max" required
                         autocomplete="off"></textarea>
 
-                    <div class="flex items-center justify-between px-2 pb-1.5 pt-1">
+                    <div class="flex items-center justify-between px-2 pb-2 pt-1">
                         <div class="flex items-center gap-1">
                             <input type="file" id="image-upload" class="hidden" accept="image/*">
                             <button type="button" id="btn-attach-image"
@@ -1004,21 +1013,21 @@
                 </div>
 
                 <!-- Opciones de Búsqueda Local (Integradas) -->
-                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
                     <button type="button"
-                        class="loc-filter-btn px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tight border border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm"
+                        class="loc-filter-btn px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-all shadow-sm"
                         data-radius="global">🌎 Todas partes</button>
                     <button type="button"
-                        class="loc-filter-btn px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tight border border-slate-100 bg-white text-slate-500 hover:bg-slate-50 hover:text-emerald-600 transition-all shadow-sm"
+                        class="loc-filter-btn px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-emerald-700 hover:border-emerald-200 transition-all shadow-sm"
                         data-radius="local_only">📍 Tiendas Locales</button>
                     <button type="button"
-                        class="loc-filter-btn px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-tight border border-slate-100 bg-white text-slate-500 hover:bg-slate-50 hover:text-emerald-600 transition-all shadow-sm"
+                        class="loc-filter-btn px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-widest border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-emerald-700 hover:border-emerald-200 transition-all shadow-sm"
                         data-radius="5">🚗 Cerca de mí</button>
                 </div>
                 <p
-                    class="text-xs text-slate-500 dark:text-slate-400 mt-3 font-medium flex items-center justify-center gap-1.5">
+                    class="text-xs text-slate-500 dark:text-slate-400 mt-4 font-medium flex items-center justify-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Lumu usa tu ubicación segura para encontrar ofertas físicas.
@@ -1028,81 +1037,71 @@
                 <input type="hidden" id="user-lng" value="">
             </form>
 
-            <!-- BARRA DE CATEGORÍAS (Estilo MercadoLibre con Emerald Polish) -->
+            <!-- BARRA DE CATEGORÍAS (Premium Pills) -->
             <div id="category-icon-bar"
-                class="w-full max-w-4xl mx-auto flex justify-between gap-4 overflow-x-auto pb-4 custom-scrollbar no-scrollbar-at-md px-2">
+                class="w-full max-w-4xl mx-auto flex justify-start sm:justify-center gap-3 overflow-x-auto pb-4 custom-scrollbar no-scrollbar-at-md px-2">
 
                 <button data-macro-category="Tecnología celulares laptops audífonos gadgets"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         📱</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Tecnología</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Tecnología</span>
                 </button>
 
                 <button data-macro-category="Ropa calzado moda accesorios tenis playeras"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         👕</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Moda</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Moda</span>
                 </button>
 
                 <button data-macro-category="Hogar muebles cocina decoración jardín"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         🏠</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Hogar</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Hogar</span>
                 </button>
 
                 <button data-macro-category="Deportes fitness pesas bicicleta futbol tenis"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         ⚽</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Deportes</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Deportes</span>
                 </button>
 
                 <button data-macro-category="Belleza maquillaje cuidado personal perfumes"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         ✨</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Belleza</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Belleza</span>
                 </button>
 
                 <button data-macro-category="Juguetes juegos de mesa consolas niños"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         🎮</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Juguetes</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Juguetes</span>
                 </button>
 
                 <button data-macro-category="Automotriz accesorios para auto llantas aceites"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
+                    class="flex items-center gap-2.5 px-4 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50 transition-all flex-shrink-0 group">
                     <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
+                        class="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center text-sm transition-colors">
                         🚗</div>
                     <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Autos</span>
-                </button>
-
-                <button data-macro-category="Todas las categorías ofertas promociones"
-                    class="flex flex-col items-center gap-2 group flex-shrink-0 opacity-80 hover:opacity-100 transition-all">
-                    <div
-                        class="w-14 h-14 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-110 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all group-hover:shadow-emerald-100 group-hover:shadow-lg">
-                        ➕</div>
-                    <span
-                        class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter group-hover:text-emerald-700">Ver
-                        más</span>
+                        class="text-[11px] font-bold text-slate-700 uppercase tracking-wide group-hover:text-emerald-800">Autos</span>
                 </button>
             </div>
 
@@ -1120,102 +1119,109 @@
                 <button class="text-primary font-bold text-sm hover:underline hidden sm:block">Ver todas</button>
             </div>
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Oferta 1 -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                     onclick="document.getElementById('search-input').value='iPhone 15 Pro 256GB'; document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
-                    <div style="background-color: #ffffff !important;"
-                        class="relative w-full aspect-square rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                    <div
+                        class="relative w-full aspect-[4/3] bg-slate-50/80 rounded-xl mb-4 flex items-center justify-center overflow-hidden p-4">
                         <div
-                            class="absolute top-2 left-2 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10 shadow-sm shadow-slate-900/10">
+                            class="absolute top-2 left-2 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full z-10 shadow-sm tracking-wide">
                             MÁS BUSCADO</div>
                         <img src="/images/iphone15pro.png" alt="iPhone 15 Pro" referrerpolicy="no-referrer"
                             loading="lazy"
-                            class="w-3/4 h-3/4 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                            class="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500 drop-shadow-md">
                     </div>
-                    <div class="text-xs text-secondary font-bold mb-1 tracking-wide uppercase">Apple</div>
-                    <h4 class="font-semibold text-slate-800 text-sm mb-2 line-clamp-2 leading-tight">iPhone 15 Pro 256GB
-                        Titanio</h4>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">Apple</div>
+                    <h4
+                        class="font-bold text-slate-800 text-sm mb-3 line-clamp-2 leading-tight group-hover:text-emerald-700 transition-colors h-10">
+                        iPhone 15 Pro 256GB Titanio</h4>
                     <div class="flex items-end gap-2 mb-1">
-                        <span class="text-xl font-black text-slate-900">$21,499</span>
-                        <span class="text-xs text-slate-400 line-through mb-1">$23,999</span>
+                        <span class="text-2xl font-black text-slate-900">$21,499</span>
+                        <span class="text-xs font-bold text-slate-400 line-through mb-1">$23,999</span>
                     </div>
-                    <div class="text-xs text-primary font-bold">Llega gratis mañana</div>
+                    <div
+                        class="text-[11px] text-emerald-600 font-bold bg-emerald-50 w-fit px-2 py-0.5 rounded-md mt-2 tracking-wide">
+                        Llega gratis mañana</div>
                 </div>
 
                 <!-- Oferta 2 -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                     onclick="document.getElementById('search-input').value='Nintendo Switch OLED'; document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
-                    <div style="background-color: #ffffff !important;"
-                        class="relative w-full aspect-square rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                    <div
+                        class="relative w-full aspect-[4/3] bg-slate-50/80 rounded-xl mb-4 flex items-center justify-center overflow-hidden p-4">
                         <div
-                            class="absolute top-2 left-2 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded-md z-10 border border-emerald-200 shadow-sm shadow-emerald-500/10">
+                            class="absolute top-2 left-2 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full z-10 shadow-sm tracking-wide">
                             OFERTA DEL DÍA</div>
-                        <img src="/images/switch.png" alt="Nintendo Switch OLED" referrerpolicy="no-referrer"
-                            loading="lazy"
-                            class="w-3/4 h-3/4 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                        <img src="/images/switch.png" alt="Switch OLED" referrerpolicy="no-referrer" loading="lazy"
+                            class="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500 drop-shadow-md">
                     </div>
-                    <div class="text-xs text-secondary font-bold mb-1 tracking-wide uppercase">Nintendo</div>
-                    <h4 class="font-semibold text-slate-800 text-sm mb-2 line-clamp-2 leading-tight">Consola Nintendo
-                        Switch OLED 64GB</h4>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">Nintendo</div>
+                    <h4
+                        class="font-bold text-slate-800 text-sm mb-3 line-clamp-2 leading-tight group-hover:text-emerald-700 transition-colors h-10">
+                        Consola Nintendo Switch OLED 64GB</h4>
                     <div class="flex items-end gap-2 mb-1">
-                        <span class="text-xl font-black text-slate-900">$5,399</span>
-                        <span class="text-xs text-slate-400 line-through mb-1">$6,999</span>
+                        <span class="text-2xl font-black text-slate-900">$5,399</span>
+                        <span class="text-xs font-bold text-slate-400 line-through mb-1">$6,999</span>
                     </div>
-                    <div class="text-xs text-primary font-bold">Llega gratis mañana</div>
+                    <div
+                        class="text-[11px] text-emerald-600 font-bold bg-emerald-50 w-fit px-2 py-0.5 rounded-md mt-2 tracking-wide">
+                        Llega gratis mañana</div>
                 </div>
 
                 <!-- Oferta 3 -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer group hidden md:block"
-                    onclick="document.getElementById('search-input').value='Sony WH-1000XM5'; document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
-                    <div style="background-color: #ffffff !important;"
-                        class="relative w-full aspect-square rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                    onclick="document.getElementById('search-input').value='Audífonos Sony WH-1000XM5'; document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
+                    <div
+                        class="relative w-full aspect-[4/3] bg-slate-50/80 rounded-xl mb-4 flex items-center justify-center overflow-hidden p-4">
                         <img src="/images/sonywh.png" alt="Sony Headphones" referrerpolicy="no-referrer" loading="lazy"
-                            class="w-3/4 h-3/4 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                            class="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500 drop-shadow-md">
                     </div>
-                    <div class="text-xs text-secondary font-bold mb-1 tracking-wide uppercase">Sony</div>
-                    <h4 class="font-semibold text-slate-800 text-sm mb-2 line-clamp-2 leading-tight">Audífonos Diadema
-                        Inalámbricos WH-1000XM5</h4>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">Sony</div>
+                    <h4
+                        class="font-bold text-slate-800 text-sm mb-3 line-clamp-2 leading-tight group-hover:text-emerald-700 transition-colors h-10">
+                        Audífonos Diadema Inalámbricos WH-1000XM5</h4>
                     <div class="flex items-end gap-2 mb-1">
-                        <span class="text-xl font-black text-slate-900">$5,999</span>
-                        <span class="text-xs text-slate-400 line-through mb-1">$7,499</span>
+                        <span class="text-2xl font-black text-slate-900">$5,999</span>
+                        <span class="text-xs font-bold text-slate-400 line-through mb-1">$7,499</span>
                     </div>
-                    <div class="text-xs text-emerald-600 font-bold">Importación segura</div>
+                    <div
+                        class="text-[11px] text-blue-600 font-bold bg-blue-50 w-fit px-2 py-0.5 rounded-md mt-2 tracking-wide">
+                        Importación segura</div>
                 </div>
 
                 <!-- Oferta 4 -->
-                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-lg transition-all cursor-pointer group hidden lg:block"
-                    onclick="document.getElementById('search-input').value='Ninja Air Fryer AF101'; document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
-                    <div style="background-color: #ffffff !important;"
-                        class="relative w-full aspect-square rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                    onclick="document.getElementById('search-input').value='Freidora de Aire Ninja'; document.getElementById('search-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
+                    <div
+                        class="relative w-full aspect-[4/3] bg-slate-50/80 rounded-xl mb-4 flex items-center justify-center overflow-hidden p-4">
                         <div
-                            class="absolute top-2 left-2 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10 shadow-sm">
+                            class="absolute top-2 left-2 bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-1 rounded-full z-10 shadow-sm tracking-wide">
                             LIQUIDACIÓN</div>
-                        <img src="/images/ninja.png" alt="Ninja Air Fryer" referrerpolicy="no-referrer" loading="lazy"
-                            class="w-3/4 h-3/4 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                        <img src="/images/ninja.png" alt="Freidora Ninja" referrerpolicy="no-referrer" loading="lazy"
+                            class="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500 drop-shadow-md">
                     </div>
-                    <div class="text-xs text-secondary font-bold mb-1 tracking-wide uppercase">Ninja</div>
-                    <h4 class="font-semibold text-slate-800 text-sm mb-2 line-clamp-2 leading-tight">Freidora de Aire
-                        AF101, 3.7 Litros</h4>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-widest">Ninja</div>
+                    <h4
+                        class="font-bold text-slate-800 text-sm mb-3 line-clamp-2 leading-tight group-hover:text-emerald-700 transition-colors h-10">
+                        Freidora de Aire AF101, 3.7 Litros</h4>
                     <div class="flex items-end gap-2 mb-1">
-                        <span class="text-xl font-black text-slate-900">$1,899</span>
-                        <span class="text-xs text-slate-400 line-through mb-1">$2,999</span>
+                        <span class="text-2xl font-black text-slate-900">$1,899</span>
+                        <span class="text-xs font-bold text-slate-400 line-through mb-1">$2,999</span>
                     </div>
-                    <div class="text-xs text-primary font-bold">Últimas 5 unidades</div>
+                    <div
+                        class="text-[11px] text-rose-600 font-bold bg-rose-50 w-fit px-2 py-0.5 rounded-md mt-2 tracking-wide">
+                        Últimas 5 unidades</div>
                 </div>
             </div>
         </div>
 
         <!-- AdSense: Auto Ads maneja la colocación automáticamente -->
 
-        <!-- Área de Conversación (Chat) -->
-        <div id="chat-container"
-            class="hidden w-full max-w-2xl mx-auto mb-14 flex flex-col gap-4 max-h-[75vh] overflow-y-auto custom-scrollbar scroll-smooth px-2">
-            <!-- Burbujas inyectadas por JS -->
-        </div>
-
-        <!-- Área de Resultados -->
+        <!-- AdSense: Auto Ads maneja la colocación automáticamente -->
         <div id="results-wrapper" class="w-full hidden mt-4">
+            <div id="chat-container" class="w-full flex-col gap-4 mb-6 custom-scrollbar overflow-y-auto hidden"
+                style="max-height: 600px;"></div>
             <div class="flex items-center justify-between mb-8 pb-3 border-b border-slate-200">
                 <h3 id="results-title" class="text-2xl font-display font-bold text-slate-900">Análisis completado. <span
                         class="text-slate-500 font-medium">Mejores opciones seguras:</span></h3>
@@ -2052,45 +2058,7 @@
     </div>
 
 
-    <!-- Tutorial Onboarding (NUEVO Phase 19) -->
-    <div id="welcome-modal"
-        class="fixed inset-0 z-[200] flex items-center justify-center invisible opacity-0 transition-all duration-500">
-        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
-        <div
-            class="glass-panel w-full max-w-lg mx-4 rounded-[2.5rem] shadow-2xl overflow-hidden relative transition-all duration-500 scale-90 translate-y-8 bg-white/95 border border-white/50">
-            <div class="p-10 text-center">
-                <!-- Step dots -->
-                <div class="flex justify-center gap-2 mb-8">
-                    <div class="step-dot w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <div class="step-dot w-2 h-2 rounded-full bg-slate-200"></div>
-                    <div class="step-dot w-2 h-2 rounded-full bg-slate-200"></div>
-                </div>
-
-                <div id="onboarding-content">
-                    <!-- Step 1 -->
-                    <div class="onboarding-step fade-in">
-                        <div
-                            class="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mx-auto mb-6 text-4xl shadow-lg shadow-emerald-500/10">
-                            🔍</div>
-                        <h3 class="text-3xl font-display font-black text-slate-900 mb-4 tracking-tight">Escribe lo
-                            que
-                            buscas
-                        </h3>
-                        <p class="text-slate-600 font-medium leading-relaxed mb-8">Dile a nuestra IA exactamente qué
-                            necesitas. Desde "unos tenis para correr" hasta "un regalo para mi mamá".</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <button id="btn-onboarding-next"
-                        class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-xl shadow-emerald-500/20 active:scale-95">Siguiente</button>
-                    <button id="btn-onboarding-skip"
-                        class="w-full py-3 text-slate-400 hover:text-slate-600 font-bold text-sm transition-colors">Saltar
-                        tutorial</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Tutorial Onboarding eliminado -->
 
     <!-- Auth Modal (NUEVO Phase 18) -->
     <div id="auth-modal"
@@ -2237,7 +2205,8 @@
 
     <!-- Scripts Finales (Versionado para evadir caché local y asegurar que los fixes carguen) -->
     <script>console.log('INLINE SCRIPT: About to load app.js');</script>
-    <script src="/app.js?v=final_fix_v2"></script>
+    <!-- Lógica de la APP (JS Principal) -->
+    <script src="app.js?v=final_fix_v3"></script>
 </body>
 
 </html>
